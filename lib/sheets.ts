@@ -1,10 +1,13 @@
 import { google } from "googleapis";
 
 function getAuth() {
-    const raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    let raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
     if (!raw) throw new Error("缺少 GOOGLE_SERVICE_ACCOUNT_JSON 環境變數");
 
     try {
+        // 安全處理：移除 Vercel 或本地可能誤寫在全句首尾的單/雙引號
+        raw = raw.trim().replace(/^['"]|['"]$/g, '');
+
         const credentials = JSON.parse(raw);
 
         // 修復私鑰中的換行符號問題。
