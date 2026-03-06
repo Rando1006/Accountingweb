@@ -52,7 +52,9 @@ body {
   scroll-behavior: smooth;
   overflow-x: hidden;
   line-height: 1.6;
-  padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
+  /* 從根源確保左右兩側至少有 16px 的留白，並兼容異形屏安全區域 */
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
 }
 
 /* 遊戲感強烈的超級圓角卡片 */
