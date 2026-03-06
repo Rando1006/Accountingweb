@@ -214,8 +214,8 @@ export default function AnalysisPage() {
             <div className="decoration-blob w-[400px] h-[400px] bg-blue-50 top-[-200px] right-[-150px]" />
             <div className="decoration-blob w-[300px] h-[300px] bg-green-50 bottom-[10%] left-[-100px]" />
 
-            <main className="flex-1 flex flex-col px-7 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
-                <header className="mb-8 animate-soft-in">
+            <main className="flex-1 flex flex-col px-5 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+                <header className="mb-8 px-2 animate-soft-in">
                     <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
                         支出分析
                     </h1>
@@ -306,7 +306,7 @@ export default function AnalysisPage() {
                                 const amount = chartData.datasets[0].data[idx];
                                 const percentage = ((amount / totalAmount) * 100).toFixed(1);
                                 return (
-                                    <div key={label} className="flex items-center justify-between p-5 glass-card">
+                                    <div key={label} className="flex items-center justify-between p-5 glass-card mx-2">
                                         <div className="flex items-center gap-4">
                                             <div className="w-4 h-4 rounded-full shadow-inner" style={{ backgroundColor: CATEGORY_COLORS[label] }} />
                                             <span className="text-base font-black" style={{ color: "var(--text-primary)" }}>{label}</span>

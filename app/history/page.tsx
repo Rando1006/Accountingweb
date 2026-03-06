@@ -129,8 +129,8 @@ export default function HistoryPage() {
             <div className="decoration-blob w-[300px] h-[300px] bg-green-100 top-[-100px] left-[-100px]" />
             <div className="decoration-blob w-[250px] h-[250px] bg-pink-50 bottom-[10%] right-[-50px]" />
 
-            <main className="flex-1 flex flex-col px-7 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
-                <header className="mb-6 animate-soft-in">
+            <main className="flex-1 flex flex-col px-5 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+                <header className="mb-6 px-2 animate-soft-in">
                     <div className="flex items-end justify-between mb-4">
                         <div>
                             <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>

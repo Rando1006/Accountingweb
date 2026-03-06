@@ -94,8 +94,8 @@ export default function Home() {
       <div className="decoration-blob w-[300px] h-[300px] bg-green-50 top-[-100px] left-[-100px] opacity-60" />
       <div className="decoration-blob w-[250px] h-[250px] bg-blue-50 bottom-[20%] right-[-50px] opacity-40" />
 
-      <main className="flex-1 flex flex-col px-7 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
-        <header className="mb-10 animate-soft-in flex justify-between items-start">
+      <main className="flex-1 flex flex-col px-5 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+        <header className="mb-10 px-2 animate-soft-in flex justify-between items-start">
           <div>
             <h1 className="text-4xl font-black tracking-tight leading-tight" style={{ color: "var(--text-primary)" }}>
               種下今天的<br />
@@ -167,7 +167,7 @@ export default function Home() {
 
           {previews.length > 0 && (
             <div className="space-y-4 animate-soft-in">
-              <div className="flex items-center justify-between px-2">
+              <div className="flex items-center justify-between px-4">
                 <h3 className="text-sm font-black flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
                   <span className="w-2 h-5 bg-[var(--accent)] rounded-full" />
                   即將種下的消費種子 ({previews.length})
