@@ -73,9 +73,22 @@ export default function AnalysisCharts({ data }: AnalysisChartsProps) {
         },
     };
 
+    const isSingleCategory = data.labels.length === 1;
+
+    // 單一分類時改為甜甜圈形狀 (cutout: 60%)
+    if (isSingleCategory) {
+        options.cutout = "60%";
+    }
+
     return (
         <div className="relative w-full h-[320px] flex items-center justify-center p-2">
             <Pie data={data} options={options} />
+            {isSingleCategory && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8">
+                    <span className="text-3xl font-black text-[var(--accent)] tracking-tighter">100%</span>
+                    <span className="text-[10px] font-bold text-[var(--text-muted)] mt-1">{data.labels[0]}</span>
+                </div>
+            )}
         </div>
     );
 }
