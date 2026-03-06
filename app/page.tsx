@@ -94,7 +94,7 @@ export default function Home() {
       <div className="decoration-blob w-[300px] h-[300px] bg-green-50 top-[-100px] left-[-100px] opacity-60" />
       <div className="decoration-blob w-[250px] h-[250px] bg-blue-50 bottom-[20%] right-[-50px] opacity-40" />
 
-      <main className="flex-1 flex flex-col px-5 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+      <main className="flex-1 flex flex-col px-7 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
         <header className="mb-10 animate-soft-in flex justify-between items-start">
           <div>
             <h1 className="text-4xl font-black tracking-tight leading-tight" style={{ color: "var(--text-primary)" }}>
@@ -120,13 +120,13 @@ export default function Home() {
         </header>
 
         <section className="space-y-6">
-          <div className="glass-card p-6 animate-soft-in shadow-xl">
+          <div className="glass-card p-6 md:p-7 animate-soft-in shadow-xl">
             <textarea
               ref={textareaRef}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="一次記多筆也可以喔！&#10;例：昨天早餐50 捷運20 晚餐100"
-              className="w-full min-h-[140px] bg-transparent border-none outline-none text-lg font-bold placeholder:opacity-30 resize-none"
+              className="w-full min-h-[140px] px-1 bg-transparent border-none outline-none text-lg font-bold placeholder:opacity-30 resize-none"
               style={{ color: "var(--text-primary)" }}
             />
 
@@ -174,10 +174,10 @@ export default function Home() {
                 </h3>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {previews.map((item, idx) => (
-                  <div key={idx} className="glass-card p-5 group animate-soft-in" style={{ borderBottomWidth: "6px" }}>
-                    <div className="flex justify-between items-start mb-2">
+                  <div key={idx} className="glass-card px-6 py-5 group animate-soft-in" style={{ borderBottomWidth: "6px" }}>
+                    <div className="flex justify-between items-start mb-3 pt-1">
                       <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 bg-[var(--bg-soft)] text-[var(--accent)] text-[10px] font-black rounded-md">
                           {item.date}
@@ -188,17 +188,17 @@ export default function Home() {
                       </div>
                       <button
                         onClick={() => removeItem(idx)}
-                        className="w-6 h-6 flex items-center justify-center text-[var(--text-muted)] hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                        className="w-6 h-6 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
                       >
                         ✕
                       </button>
                     </div>
 
-                    <div className="flex justify-between items-end">
+                    <div className="flex justify-between items-end pb-1">
                       <h4 className="text-xl font-black truncate max-w-[65%]" style={{ color: "var(--text-primary)" }}>
                         {item.item}
                       </h4>
-                      <p className="text-2xl font-black tracking-tighter" style={{ color: "var(--text-primary)" }}>
+                      <p className="text-2xl font-black tracking-tighter pr-2" style={{ color: "var(--text-primary)" }}>
                         <span className="text-sm opacity-50 mr-0.5">$</span>
                         {item.amount.toLocaleString()}
                       </p>
