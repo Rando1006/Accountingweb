@@ -130,27 +130,32 @@ export default function HistoryPage() {
             <div className="decoration-blob w-[250px] h-[250px] bg-pink-50 bottom-[10%] right-[-50px]" />
 
             <main className="flex-1 flex flex-col px-5 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
-                <div className="flex items-end justify-between mb-10 pb-4 border-b-2 border-dashed border-[var(--border)]">
-                    <div className="animate-soft-in">
-                        <h1 className="text-2xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
-                            消費紀錄
-                        </h1>
-                        <div className="mt-1 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
-                            <p className="text-xs font-bold" style={{ color: "var(--text-muted)" }}>
-                                玩家：<span style={{ color: "var(--accent)" }}>{userId}</span>
-                            </p>
+                <header className="mb-6 animate-soft-in">
+                    <div className="flex items-end justify-between mb-4">
+                        <div>
+                            <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
+                                消費紀錄
+                            </h1>
+                            <div className="mt-1 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
+                                <p className="text-xs font-bold" style={{ color: "var(--text-muted)" }}>
+                                    玩家：<span style={{ color: "var(--accent)" }}>{userId}</span>
+                                </p>
+                            </div>
                         </div>
                     </div>
-                    {!loading && !error && (
-                        <div className="glass-card px-5 py-3 text-right" style={{ borderBottomWidth: "4px" }}>
-                            <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1.5" style={{ color: "var(--text-muted)" }}>Total</p>
-                            <p className="text-xl font-black leading-none" style={{ color: "var(--accent)" }}>
+
+                    {!loading && !error && groups.length > 0 && (
+                        <div className="flex flex-col items-center justify-center py-8 mt-2 bg-transparent border-t-2 border-b-2 border-dashed border-[var(--border)]">
+                            <span className="text-[11px] font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>
+                                － 累積總花費 －
+                            </span>
+                            <span className="text-5xl font-black tracking-tighter" style={{ color: "var(--text-primary)" }}>
                                 ${totalAll.toLocaleString()}
-                            </p>
+                            </span>
                         </div>
                     )}
-                </div>
+                </header>
 
                 {loading ? (
                     <div className="flex-1 flex items-center justify-center">
@@ -185,10 +190,13 @@ export default function HistoryPage() {
                                     {group.items.map((item, idx) => (
                                         <div
                                             key={idx}
-                                            className={`flex flex-col ${idx < group.items.length - 1 ? "border-b-2 border-dashed border-[var(--border)]" : ""
+                                            className={`flex overflow-x-auto snap-x snap-mandatory ${idx < group.items.length - 1 ? "border-b-2 border-dashed border-[var(--border)]" : ""
                                                 }`}
+                                            // 隱藏滾動條的 inline style
+                                            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                                         >
-                                            <div className="flex items-center gap-3 px-4 py-4">
+                                            {/* 主要內容區 (滑動前看到的範圍) */}
+                                            <div className="w-full flex-shrink-0 snap-center flex items-center gap-3 px-4 py-4 bg-white/50">
                                                 <div className="w-11 h-11 rounded-[16px] bg-[var(--bg-soft)] flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
                                                     {CATEGORY_ICONS[item.category] ?? "📌"}
                                                 </div>
@@ -205,22 +213,22 @@ export default function HistoryPage() {
                                                 </div>
                                             </div>
 
-                                            {/* 操作區塊 */}
-                                            <div className="flex justify-end gap-2 px-4 pb-4">
+                                            {/* 操作區塊 (向左滑動後出現) */}
+                                            <div className="flex shrink-0 snap-end px-3 gap-2 items-center bg-[var(--bg-primary)] border-l border-[var(--border)]">
                                                 <button
                                                     onClick={() => {
                                                         setEditingItem(item);
                                                         setIsEditOpen(true);
                                                     }}
-                                                    className="text-[10px] font-black px-4 py-1.5 bg-[var(--bg-soft)] text-[var(--accent)] rounded-full hover:bg-[var(--accent)] hover:text-white transition-all shadow-sm"
+                                                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[var(--bg-soft)] text-lg shadow-sm hover:scale-105 transition-transform"
                                                 >
-                                                    修改 ✏️
+                                                    ✏️
                                                 </button>
                                                 <button
                                                     onClick={() => item.id && handleDelete(item.id)}
-                                                    className="text-[10px] font-black px-4 py-1.5 bg-red-50 text-red-400 rounded-full hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                                                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-red-50 text-lg shadow-sm hover:scale-105 transition-transform"
                                                 >
-                                                    刪除 🗑️
+                                                    🗑️
                                                 </button>
                                             </div>
                                         </div>
