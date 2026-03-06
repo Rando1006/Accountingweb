@@ -5,18 +5,24 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const limitParam = searchParams.get("limit");
+        const offsetParam = searchParams.get("offset");
         const limit = limitParam ? parseInt(limitParam) : 50;
+        const offset = offsetParam ? parseInt(offsetParam) : 0;
         const userId = searchParams.get("userId");
 
-        // 取得較多資料以應對過濾需求
-        let expenses = await getExpenses(500);
+        // 取得足夠資料以過濾特定使用者的紀錄
+        // 為了支援分頁，我們先抓取較大範圍 (例如 1000 筆)
+        let expenses = await getExpenses(1000);
 
         if (userId) {
             const normalizedUserId = userId.toLowerCase().trim();
             expenses = expenses.filter(e => e.userId.toLowerCase().trim() === normalizedUserId);
         }
 
-        return NextResponse.json(expenses.slice(0, limit));
+        // 執行分頁切片：從 offset 開始取 limit 筆
+        const paginatedExpenses = expenses.slice(offset, offset + limit);
+
+        return NextResponse.json(paginatedExpenses);
     } catch (error: any) {
         console.error("讀取失敗：", error);
         return NextResponse.json({ error: `讀取失敗：${error.message}` }, { status: 500 });

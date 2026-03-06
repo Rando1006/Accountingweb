@@ -48,21 +48,51 @@ export default function HistoryPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [userId, setUserId] = useState("default");
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [allData, setAllData] = useState<ExpenseRow[]>([]);
+    const LIMIT = 50;
+
+    // 格式化日期範圍顯示
+    const getDateRangeLabel = () => {
+        if (allData.length === 0) return null;
+        const dates = allData.map(d => d.date).sort();
+        const start = dates[0].replace(/-/g, "/");
+        const end = dates[dates.length - 1].replace(/-/g, "/");
+        return `顯示最近 ${allData.length} 筆（${start} - ${end}）`;
+    };
 
     // 編輯與刪除狀態
     const [editingItem, setEditingItem] = useState<ExpenseRow | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
 
-    const fetchData = async () => {
+    const fetchData = async (isLoadMore = false) => {
         const savedId = localStorage.getItem("pocket_account_user_id") || "default";
         setUserId(savedId);
 
-        try {
-            const res = await fetch(`/api/expense?userId=${savedId}&limit=50`);
-            const data: ExpenseRow[] = await res.json();
+        const currentOffset = isLoadMore ? offset + LIMIT : 0;
+        if (!isLoadMore) {
+            setLoading(true);
+            setAllData([]);
+        }
 
+        try {
+            const res = await fetch(`/api/expense?userId=${savedId}&limit=${LIMIT}&offset=${currentOffset}`);
+            const newData: ExpenseRow[] = await res.json();
+
+            if (newData.length < LIMIT) {
+                setHasMore(false);
+            } else {
+                setHasMore(true);
+            }
+
+            const combinedData = isLoadMore ? [...allData, ...newData] : newData;
+            setAllData(combinedData);
+            if (isLoadMore) setOffset(currentOffset);
+
+            // 分組邏輯
             const map = new Map<string, ExpenseRow[]>();
-            data.forEach((row) => {
+            combinedData.forEach((row) => {
                 if (!map.has(row.date)) map.set(row.date, []);
                 map.get(row.date)!.push(row);
             });
@@ -155,6 +185,11 @@ export default function HistoryPage() {
                             </span>
                         </div>
                     )}
+                    {allData.length > 0 && (
+                        <p className="text-[10px] font-black text-center mt-4 tracking-tighter opacity-50 uppercase" style={{ color: "var(--text-muted)" }}>
+                            {getDateRangeLabel()}
+                        </p>
+                    )}
                 </header>
 
                 {loading ? (
@@ -236,6 +271,17 @@ export default function HistoryPage() {
                                 </div>
                             </div>
                         ))}
+
+                        {hasMore && !loading && (
+                            <div className="pt-4 pb-8 flex justify-center">
+                                <button
+                                    onClick={() => fetchData(true)}
+                                    className="px-8 py-3 bg-white border-2 border-[var(--border)] text-[var(--accent)] font-black text-xs rounded-full hover:bg-[var(--bg-soft)] transition-all shadow-sm active:scale-95"
+                                >
+                                    載入更多歷史種子 🍀
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </main>

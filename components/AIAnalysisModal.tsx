@@ -9,6 +9,37 @@ interface AIAnalysisModalProps {
 export default function AIAnalysisModal({ isOpen, onClose, advice }: AIAnalysisModalProps) {
     if (!isOpen) return null;
 
+    const renderAdvice = (text: string) => {
+        if (!text) return "正在傾聽種子的聲音...";
+
+        // 切分加粗部分與普通文字，並處理數字顏色
+        const parts = text.split(/(\*\*.*?\*\*)/g);
+
+        return parts.map((part, i) => {
+            if (part.startsWith("**") && part.endsWith("**")) {
+                const innerText = part.slice(2, -2);
+                return (
+                    <strong key={i} className="font-black text-[var(--accent)]">
+                        {innerText.split(/(\d+(?:\.\d+)?%?|\$\d+)/g).map((sub, j) => {
+                            if (/(\d+(?:\.\d+)?%?|\$\d+)/.test(sub)) {
+                                return <span key={j} className="text-[var(--status-pink)] drop-shadow-sm">{sub}</span>;
+                            }
+                            return sub;
+                        })}
+                    </strong>
+                );
+            }
+
+            // 處理非加粗部分的數字/百分比顏色
+            return part.split(/(\d+(?:\.\d+)?%?|\$\d+)/g).map((sub, j) => {
+                if (/(\d+(?:\.\d+)?%?|\$\d+)/.test(sub)) {
+                    return <span key={j} className="text-orange-500 font-black">{sub}</span>;
+                }
+                return sub;
+            });
+        });
+    };
+
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-green-900/10 backdrop-blur-sm animate-soft-in">
             <div className="w-full max-w-sm glass-card p-8 bg-white border-4 animate-soft-in overflow-hidden relative" style={{ borderBottomWidth: "8px" }}>
@@ -28,7 +59,7 @@ export default function AIAnalysisModal({ isOpen, onClose, advice }: AIAnalysisM
                 <div className="relative z-10">
                     <div className="bg-[var(--bg-soft)] rounded-[16px] px-7 py-5 max-h-[400px] overflow-y-auto scrollbar-hide border-2 border-white">
                         <div className="text-sm font-bold leading-relaxed whitespace-pre-wrap" style={{ color: "var(--text-primary)" }}>
-                            {advice || "正在傾聽種子的聲音..."}
+                            {renderAdvice(advice)}
                         </div>
                     </div>
                 </div>
