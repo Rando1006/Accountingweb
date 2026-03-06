@@ -94,7 +94,7 @@ export default function Home() {
       <div className="decoration-blob w-[300px] h-[300px] bg-green-50 top-[-100px] left-[-100px] opacity-60" />
       <div className="decoration-blob w-[250px] h-[250px] bg-blue-50 bottom-[20%] right-[-50px] opacity-40" />
 
-      <main className="flex-1 flex flex-col px-5 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+      <main className="flex-1 flex flex-col px-6 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
         <header className="mb-10 px-2 animate-soft-in flex justify-between items-start">
           <div>
             <h1 className="text-4xl font-black tracking-tight leading-tight" style={{ color: "var(--text-primary)" }}>
