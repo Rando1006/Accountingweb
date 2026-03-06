@@ -159,7 +159,7 @@ export default function HistoryPage() {
             <div className="decoration-blob w-[300px] h-[300px] bg-green-100 top-[-100px] left-[-100px]" />
             <div className="decoration-blob w-[250px] h-[250px] bg-pink-50 bottom-[10%] right-[-50px]" />
 
-            <main className="flex-1 flex flex-col px-5 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+            <main className="flex-1 flex flex-col pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
                 <header className="mb-6 px-2 animate-soft-in">
                     <div className="flex items-end justify-between mb-4">
                         <div>
@@ -212,7 +212,7 @@ export default function HistoryPage() {
                     <div className="space-y-8 animate-soft-in">
                         {groups.map((group) => (
                             <div key={group.date} className="mx-4">
-                                <div className="flex items-center justify-between mb-3 px-1">
+                                <div className="flex items-center justify-between mb-3 px-4">
                                     <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
                                         {formatDateLabel(group.date)}
                                     </span>
@@ -221,7 +221,7 @@ export default function HistoryPage() {
                                     </span>
                                 </div>
 
-                                <div className="glass-card overflow-hidden">
+                                <div className="glass-card mx-4 overflow-hidden">
                                     {group.items.map((item, idx) => (
                                         <div
                                             key={idx}
