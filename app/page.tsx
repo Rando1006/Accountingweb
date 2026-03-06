@@ -126,7 +126,7 @@ export default function Home() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="一次記多筆也可以喔！&#10;例：昨天早餐50 捷運20 晚餐100"
-              className="w-full min-h-[140px] px-1 bg-transparent border-none outline-none text-lg font-bold placeholder:opacity-30 resize-none"
+              className="w-full min-h-[140px] p-3 bg-transparent border-none outline-none text-lg font-bold placeholder:opacity-30 resize-none"
               style={{ color: "var(--text-primary)" }}
             />
 
@@ -194,7 +194,7 @@ export default function Home() {
                       </button>
                     </div>
 
-                    <div className="flex justify-between items-end pb-1">
+                    <div className="flex justify-between items-end pb-3">
                       <h4 className="text-xl font-black truncate max-w-[65%]" style={{ color: "var(--text-primary)" }}>
                         {item.item}
                       </h4>
