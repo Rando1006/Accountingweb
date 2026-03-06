@@ -159,7 +159,7 @@ export default function HistoryPage() {
             <div className="decoration-blob w-[300px] h-[300px] bg-green-100 top-[-100px] left-[-100px]" />
             <div className="decoration-blob w-[250px] h-[250px] bg-pink-50 bottom-[10%] right-[-50px]" />
 
-            <main className="flex-1 flex flex-col pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+            <main className="flex-1 flex flex-col px-4 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
                 <header className="mb-6 px-2 animate-soft-in">
                     <div className="flex items-end justify-between mb-4">
                         <div>
@@ -211,8 +211,8 @@ export default function HistoryPage() {
                 ) : (
                     <div className="space-y-8 animate-soft-in">
                         {groups.map((group) => (
-                            <div key={group.date} className="mx-4">
-                                <div className="flex items-center justify-between mb-3 px-4">
+                            <div key={group.date}>
+                                <div className="flex items-center justify-between px-1 mb-3">
                                     <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
                                         {formatDateLabel(group.date)}
                                     </span>
@@ -221,7 +221,7 @@ export default function HistoryPage() {
                                     </span>
                                 </div>
 
-                                <div className="glass-card mx-4 overflow-hidden">
+                                <div className="glass-card overflow-hidden rounded-2xl">
                                     {group.items.map((item, idx) => (
                                         <div
                                             key={idx}
@@ -231,7 +231,7 @@ export default function HistoryPage() {
                                             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                                         >
                                             {/* 主要內容區 (滑動前看到的範圍) */}
-                                            <div className="w-full flex-shrink-0 snap-center flex items-center gap-3 px-5 py-4 bg-white/50">
+                                            <div className="w-full flex-shrink-0 snap-center flex items-center gap-3 pl-4 pr-5 py-4 bg-white/50">
                                                 <div className="w-11 h-11 rounded-[16px] bg-[var(--bg-soft)] flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
                                                     {CATEGORY_ICONS[item.category] ?? "📌"}
                                                 </div>
