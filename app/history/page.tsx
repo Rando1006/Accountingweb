@@ -211,9 +211,9 @@ export default function HistoryPage() {
                 ) : (
                     <div className="space-y-8 animate-soft-in">
                         {groups.map((group) => (
-                            <div key={group.date}>
-                                <div className="flex items-center justify-between mx-1 mb-3">
-                                    <span className="text-xs font-black uppercase tracking-widest px-1" style={{ color: "var(--text-muted)" }}>
+                            <div key={group.date} className="mx-4">
+                                <div className="flex items-center justify-between mb-3 px-1">
+                                    <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
                                         {formatDateLabel(group.date)}
                                     </span>
                                     <span className="text-xs font-black px-3 py-1 bg-white border-2 border-[var(--border)] rounded-full shadow-sm" style={{ color: "var(--text-primary)" }}>
@@ -221,7 +221,7 @@ export default function HistoryPage() {
                                     </span>
                                 </div>
 
-                                <div className="glass-card mx-1 overflow-hidden">
+                                <div className="glass-card overflow-hidden">
                                     {group.items.map((item, idx) => (
                                         <div
                                             key={idx}
