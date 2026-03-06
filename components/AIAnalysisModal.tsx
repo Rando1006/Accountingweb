@@ -26,10 +26,10 @@ export default function AIAnalysisModal({ isOpen, onClose, advice }: AIAnalysisM
                 </div>
 
                 <div className="relative z-10">
-                    <div className="bg-[var(--bg-soft)] rounded-[24px] p-6 max-h-[350px] overflow-y-auto scrollbar-hide border-2 border-white shadow-inner">
-                        <p className="text-sm font-bold leading-relaxed whitespace-pre-wrap" style={{ color: "var(--text-primary)" }}>
+                    <div className="bg-[var(--bg-soft)] rounded-[16px] px-7 py-5 max-h-[400px] overflow-y-auto scrollbar-hide border-2 border-white">
+                        <div className="text-sm font-bold leading-relaxed whitespace-pre-wrap" style={{ color: "var(--text-primary)" }}>
                             {advice || "正在傾聽種子的聲音..."}
-                        </p>
+                        </div>
                     </div>
                 </div>
 
