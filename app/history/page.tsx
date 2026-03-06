@@ -129,7 +129,7 @@ export default function HistoryPage() {
             <div className="decoration-blob w-[300px] h-[300px] bg-green-100 top-[-100px] left-[-100px]" />
             <div className="decoration-blob w-[250px] h-[250px] bg-pink-50 bottom-[10%] right-[-50px]" />
 
-            <main className="flex-1 flex flex-col px-5 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+            <main className="flex-1 flex flex-col px-7 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
                 <header className="mb-6 animate-soft-in">
                     <div className="flex items-end justify-between mb-4">
                         <div>
@@ -162,7 +162,7 @@ export default function HistoryPage() {
                         <div className="w-12 h-12 border-4 border-[var(--bg-soft)] border-t-[var(--accent)] rounded-full animate-spin" />
                     </div>
                 ) : error ? (
-                    <div className="glass-card p-8 text-center text-red-500 font-bold bg-red-50/50 border-red-100">
+                    <div className="glass-card mx-2 p-8 text-center text-red-500 font-bold bg-red-50/50 border-red-100">
                         ⚠️ {error}
                     </div>
                 ) : groups.length === 0 ? (
@@ -186,7 +186,7 @@ export default function HistoryPage() {
                                     </span>
                                 </div>
 
-                                <div className="glass-card overflow-hidden">
+                                <div className="glass-card mx-2 overflow-hidden">
                                     {group.items.map((item, idx) => (
                                         <div
                                             key={idx}

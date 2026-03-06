@@ -214,7 +214,7 @@ export default function AnalysisPage() {
             <div className="decoration-blob w-[400px] h-[400px] bg-blue-50 top-[-200px] right-[-150px]" />
             <div className="decoration-blob w-[300px] h-[300px] bg-green-50 bottom-[10%] left-[-100px]" />
 
-            <main className="flex-1 flex flex-col px-5 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+            <main className="flex-1 flex flex-col px-7 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
                 <header className="mb-8 animate-soft-in">
                     <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
                         支出分析
@@ -263,7 +263,7 @@ export default function AnalysisPage() {
                         <div className="w-12 h-12 border-4 border-[var(--bg-soft)] border-t-[var(--accent)] rounded-full animate-spin" />
                     </div>
                 ) : error ? (
-                    <div className="glass-card p-10 text-center animate-soft-in">
+                    <div className="glass-card mx-2 p-10 text-center animate-soft-in">
                         <div className="text-5xl mb-4">⚠️</div>
                         <p className="text-lg font-black text-red-500 mb-2">出錯了</p>
                         <p className="text-sm font-bold text-[var(--text-muted)]">{error}</p>
@@ -271,7 +271,7 @@ export default function AnalysisPage() {
                     </div>
                 ) : filteredData.length > 0 ? (
                     <div className="space-y-8 animate-soft-in">
-                        <div className="glass-card p-8 text-center relative overflow-hidden" style={{ borderBottomWidth: "6px" }}>
+                        <div className="glass-card mx-2 p-8 text-center relative overflow-hidden" style={{ borderBottomWidth: "6px" }}>
                             <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent)]/5 blur-3xl rounded-full" />
                             <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>
                                 {periodLabelText}總支出
@@ -293,7 +293,7 @@ export default function AnalysisPage() {
                             </button>
                         </div>
 
-                        <div className="glass-card p-6" style={{ borderBottomWidth: "6px" }}>
+                        <div className="glass-card mx-2 p-6" style={{ borderBottomWidth: "6px" }}>
                             <h3 className="text-sm font-black mb-6 flex items-center gap-3" style={{ color: "var(--text-muted)" }}>
                                 <span className="w-2 h-5 bg-[var(--status-pink)] rounded-full" />
                                 各類別占比
