@@ -1,26 +1,215 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Pikmin Bloom 清新亮色系 */
+  --bg-primary: #f9fbf2;
+  /* 暖泥土白，帶點綠味 */
+  --bg-card: #ffffff;
+  --bg-soft: #ecf3dc;
+  /* 柔和嫩草地色 */
+  --accent: #85c242;
+  /* 主要皮克敏綠 */
+  --accent-light: #a3d964;
+  --accent-hover: #6ea335;
+  --status-blue: #6db5e2;
+  /* 天空藍 */
+  --status-pink: #f5a0c1;
+  /* 花瓣粉 */
+  --status-yellow: #fbd66e;
+  /* 陽光色 */
+  --text-primary: #3d4a2a;
+  /* 深苔蘚色，取代全黑 */
+  --text-muted: #7a8a66;
+  --border: #dee6cc;
+  --shadow-soft: 0 8px 30px rgba(133, 194, 66, 0.08);
+  /* 帶綠意的軟陰影 */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@font-face {
+  font-family: 'Noto Sans TC';
+  src: url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-main);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  /* 防止長文字搞砸版面 */
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  /* 平滑滾動 */
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* 遊戲感強烈的超級圓角卡片 */
+/* 皮克敏 Q 彈玻璃卡片 */
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid var(--border);
+  border-radius: 32px;
+  box-shadow: 0 8px 32px rgba(133, 194, 66, 0.08);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+  /* 確保內容不超出垂直框架 */
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: fit-content;
+}
+
+.glass-card:active {
+  transform: scale(0.98);
+}
+
+/* Pikmin 感輸入框 */
+.expense-input {
+  width: 100%;
+  background: var(--bg-soft);
+  border: 2px solid transparent;
+  border-radius: 20px;
+  padding: 16px 20px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.expense-input:focus {
+  background: white;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(133, 194, 66, 0.1);
+}
+
+.expense-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Q 彈的按鈕 */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: white;
+  border: none;
+  border-bottom: 4px solid rgba(0, 0, 0, 0.15);
+  /* 加強立體感 */
+  border-radius: 24px;
+  padding: 16px 24px;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.2s;
+  box-shadow: 0 10px 20px rgba(133, 194, 66, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+  box-shadow: 0 5px 10px rgba(133, 194, 66, 0.2);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border: 2px solid var(--border);
+  border-bottom-width: 4px;
+  border-radius: 24px;
+  padding: 14px 24px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-secondary:active {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
+
+/* 分類色彩 - 柔和版 */
+.badge-飲食 {
+  background: #e6f7ef;
+  color: #2d8a5f;
+}
+
+.badge-交通 {
+  background: #eaf6fd;
+  color: #3b8bb8;
+}
+
+.badge-購物 {
+  background: #f7eff9;
+  color: #9d5bb8;
+}
+
+.badge-娛樂 {
+  background: #fff8ed;
+  color: #b87a2d;
+}
+
+.badge-醫療 {
+  background: #fef2f2;
+  color: #b84a4a;
+}
+
+.badge-其他 {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* 導覽列優化 */
+.bottom-nav {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 400px;
+  height: 72px;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 40px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+/* 動畫效果：軟綿綿的進入 */
+@keyframes soft-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-soft-in {
+  animation: soft-fade-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* 遊戲氣泡裝飾 */
+.decoration-blob {
+  position: fixed;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.4;
 }
