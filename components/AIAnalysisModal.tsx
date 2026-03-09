@@ -19,10 +19,10 @@ export default function AIAnalysisModal({ isOpen, onClose, advice }: AIAnalysisM
             if (part.startsWith("**") && part.endsWith("**")) {
                 const innerText = part.slice(2, -2);
                 return (
-                    <strong key={i} className="font-black text-[var(--accent)]">
+                    <strong key={i} className="font-black text-green-800">
                         {innerText.split(/(\d+(?:\.\d+)?%?|\$\d+)/g).map((sub, j) => {
                             if (/(\d+(?:\.\d+)?%?|\$\d+)/.test(sub)) {
-                                return <span key={j} className="text-[var(--status-pink)] drop-shadow-sm">{sub}</span>;
+                                return <span key={j} className="text-[#d63384] drop-shadow-sm">{sub}</span>;
                             }
                             return sub;
                         })}
@@ -33,7 +33,7 @@ export default function AIAnalysisModal({ isOpen, onClose, advice }: AIAnalysisM
             // 處理非加粗部分的數字/百分比顏色
             return part.split(/(\d+(?:\.\d+)?%?|\$\d+)/g).map((sub, j) => {
                 if (/(\d+(?:\.\d+)?%?|\$\d+)/.test(sub)) {
-                    return <span key={j} className="text-orange-500 font-black">{sub}</span>;
+                    return <span key={j} className="text-[#9a3412] font-black">{sub}</span>;
                 }
                 return sub;
             });
@@ -42,7 +42,7 @@ export default function AIAnalysisModal({ isOpen, onClose, advice }: AIAnalysisM
 
     return (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-green-900/10 backdrop-blur-sm animate-soft-in">
-            <div className="w-full max-w-sm glass-card p-8 bg-white border-4 animate-soft-in overflow-hidden relative" style={{ borderBottomWidth: "8px" }}>
+            <div className="w-full max-w-md glass-card p-8 bg-white border-4 animate-soft-in overflow-hidden relative" style={{ borderBottomWidth: "8px" }}>
                 {/* 背景裝飾 */}
                 <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--status-yellow)]/10 rounded-full -mr-12 -mt-12" />
 
@@ -57,8 +57,8 @@ export default function AIAnalysisModal({ isOpen, onClose, advice }: AIAnalysisM
                 </div>
 
                 <div className="relative z-10">
-                    <div className="bg-[var(--bg-soft)] rounded-[16px] px-7 py-5 max-h-[400px] overflow-y-auto scrollbar-hide border-2 border-white">
-                        <div className="text-sm font-bold leading-relaxed whitespace-pre-wrap" style={{ color: "var(--text-primary)" }}>
+                    <div className="bg-[var(--bg-soft)] rounded-[16px] px-7 py-6 max-h-[500px] overflow-y-auto scrollbar-hide border-2 border-white">
+                        <div className="text-base font-bold leading-relaxed whitespace-pre-wrap" style={{ color: "var(--text-primary)" }}>
                             {renderAdvice(advice)}
                         </div>
                     </div>
