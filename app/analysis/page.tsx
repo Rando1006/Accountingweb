@@ -16,11 +16,14 @@ interface ExpenseRow {
 type Period = "day" | "week" | "month" | "quarter" | "year";
 
 const CATEGORY_COLORS: Record<string, string> = {
-    飲食: "#85c242",
-    交通: "#6db5e2",
-    購物: "#f5a0c1",
-    娛樂: "#fbd66e",
-    醫療: "#ff8282",
+    飲食: "#85c242", // 蘋果綠
+    交通: "#6db5e2", // 天空藍
+    購物: "#f5a0c1", // 櫻花粉
+    娛樂: "#fbd66e", // 活力黃
+    醫療: "#ff8282", // 珊瑚紅
+    居家: "#4A90E2", // 靛藍 (新增/深色)
+    教育: "#9B51E0", // 紫色 (新增/深色)
+    通訊: "#F2994A", // 橙色 (新增/深色)
     其他: "#a3d964",
 };
 
@@ -121,9 +124,11 @@ export default function AnalysisPage() {
             stats[item.category] = (stats[item.category] || 0) + item.amount;
         });
 
-        const labels = Object.keys(stats);
-        const amounts = Object.values(stats);
-        const backgroundColors = labels.map((l) => CATEGORY_COLORS[l] || "#a3d964");
+        const rawLabels = Object.keys(stats);
+        // 按金額由大到小排序
+        const labels = rawLabels.sort((a, b) => stats[b] - stats[a]);
+        const amounts = labels.map(l => stats[l]);
+        const backgroundColors = labels.map((l) => CATEGORY_COLORS[l] || `hsl(${Math.random() * 360}, 70%, 60%)`);
 
         return {
             labels,
@@ -229,7 +234,7 @@ export default function AnalysisPage() {
                         <button
                             key={p}
                             onClick={() => setPeriod(p)}
-                            className={`flex-1 py-2.5 text-[11px] font-black rounded-[18px] transition-all ${period === p
+                            className={`flex-1 py-4 text-base font-black rounded-[18px] transition-all ${period === p
                                 ? "bg-[var(--accent)] text-white shadow-md transform scale-105"
                                 : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                                 }`}
@@ -276,26 +281,26 @@ export default function AnalysisPage() {
                             <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>
                                 {periodLabelText}總支出
                             </p>
-                            <h2 className="text-5xl font-black tracking-tighter" style={{ color: "var(--text-primary)" }}>
-                                <span className="text-2xl mr-1 opacity-50">$</span>
+                            <h2 className="text-5xl font-black tracking-tighter flex items-center justify-center gap-2" style={{ color: "var(--text-primary)" }}>
+                                <span className="text-3xl opacity-60 mt-2" style={{ transform: "translateY(2px)" }}>$</span>
                                 {totalAmount.toLocaleString()}
                             </h2>
 
                             <button
                                 onClick={handleAIAnalysis}
                                 disabled={analyzingAI}
-                                className="mt-6 px-6 py-2 bg-[var(--bg-soft)] hover:bg-[var(--accent)] hover:text-white text-[var(--accent)] text-xs font-black rounded-full transition-all border-2 border-transparent hover:shadow-lg inline-flex items-center gap-2"
+                                className="mt-8 px-12 py-5 bg-[var(--bg-soft)] hover:bg-[var(--accent)] hover:text-white text-[var(--accent)] text-lg font-black rounded-full transition-all border-2 border-transparent hover:shadow-xl inline-flex items-center gap-3"
                             >
                                 {analyzingAI ? (
-                                    <div className="w-3 h-3 border-2 border-[var(--accent)] border-t-white rounded-full animate-spin" />
+                                    <div className="w-5 h-5 border-3 border-[var(--accent)] border-t-white rounded-full animate-spin" />
                                 ) : "✨"}
                                 {analyzingAI ? "正在生成建議..." : "查看 AI 理財建議"}
                             </button>
                         </div>
 
                         <div className="glass-card mx-2 p-6" style={{ borderBottomWidth: "6px" }}>
-                            <h3 className="text-sm font-black mb-6 flex items-center gap-3" style={{ color: "var(--text-muted)" }}>
-                                <span className="w-2 h-5 bg-[var(--status-pink)] rounded-full" />
+                            <h3 className="text-sm font-black mb-6 flex items-center gap-3 px-1" style={{ color: "var(--text-muted)" }}>
+                                <span className="w-2 h-5 bg-[var(--status-pink)] rounded-full flex-shrink-0" />
                                 各類別占比
                             </h3>
                             <AnalysisCharts data={chartData} />
