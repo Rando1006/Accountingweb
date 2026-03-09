@@ -22,6 +22,11 @@ export async function middleware(request: NextRequest) {
     const token = request.cookies.get("session")?.value;
 
     if (!token) {
+        // 若為 API 請求，回傳 401
+        if (pathname.startsWith("/api/")) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+        // 反之，任何未登入的頁面請求，一律重導向到登入頁面
         return NextResponse.redirect(new URL("/login", request.url));
     }
 

@@ -9,6 +9,7 @@ interface ExpenseRow {
     amount: number;
     category: string;
     userId: string;
+    paymentMethod?: string;
 }
 
 interface EditModalProps {
@@ -18,7 +19,7 @@ interface EditModalProps {
     onSave: (updated: ExpenseRow) => Promise<void>;
 }
 
-const CATEGORIES = ["飲食", "交通", "購物", "娛樂", "醫療", "其他"];
+const CATEGORIES = ["飲食", "交通", "購物", "居家", "娛樂", "醫療", "其他"];
 
 export default function EditModal({ isOpen, data, onClose, onSave }: EditModalProps) {
     const [formData, setFormData] = useState<ExpenseRow | null>(null);
@@ -90,13 +91,54 @@ export default function EditModal({ isOpen, data, onClose, onSave }: EditModalPr
                         <div>
                             <label className="block text-[10px] font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--accent)" }}>分類</label>
                             <select
-                                className="expense-input !py-3 font-bold appearance-none bg-[var(--bg-soft)]"
                                 value={formData.category}
                                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                className="w-full px-4 py-3 bg-[var(--bg-soft)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all font-bold appearance-none"
+                                style={{ color: "var(--text-primary)" }}
                             >
                                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                             </select>
                         </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--accent)" }}>付款方式</label>
+                        <div className="flex gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer font-bold">
+                                <input
+                                    type="radio"
+                                    name="paymentMethod"
+                                    value="現金"
+                                    checked={formData.paymentMethod === "現金"}
+                                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                                    className="accent-[var(--accent)] w-4 h-4"
+                                />
+                                💵 現金
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer font-bold">
+                                <input
+                                    type="radio"
+                                    name="paymentMethod"
+                                    value={formData.paymentMethod !== "現金" && formData.paymentMethod ? formData.paymentMethod : "信用卡/行動支付"}
+                                    checked={formData.paymentMethod !== "現金"}
+                                    onChange={(e) => setFormData({ ...formData, paymentMethod: "信用卡/行動支付" })}
+                                    className="accent-[var(--accent)] w-4 h-4"
+                                />
+                                💳 信用卡/行動支付
+                            </label>
+                        </div>
+                        {formData.paymentMethod !== "現金" && (
+                            <div className="mt-2">
+                                <input
+                                    type="text"
+                                    placeholder="填寫刷哪張卡或用哪種支付 (如: 元大、Line Pay)"
+                                    className="w-full px-4 py-2 bg-[var(--bg-soft)] rounded-xl outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all font-bold text-xs"
+                                    style={{ color: "var(--text-primary)" }}
+                                    value={formData.paymentMethod === "信用卡/行動支付" ? "" : formData.paymentMethod}
+                                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value || "信用卡/行動支付" })}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-4 pt-4">

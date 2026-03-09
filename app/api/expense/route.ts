@@ -9,15 +9,27 @@ export async function GET(request: NextRequest) {
         const limit = limitParam ? parseInt(limitParam) : 50;
         const offset = offsetParam ? parseInt(offsetParam) : 0;
         const userId = searchParams.get("userId");
+        const keyword = searchParams.get("keyword") || "";
+        const startDate = searchParams.get("startDate") || "";
+        const endDate = searchParams.get("endDate") || "";
+        const category = searchParams.get("category") || "";
+        const paymentMethod = searchParams.get("paymentMethod") || "";
 
-        // 取得足夠資料以過濾特定使用者的紀錄
-        // 為了支援分頁，我們先抓取較大範圍 (例如 1000 筆)
-        let expenses = await getExpenses(1000);
-
-        if (userId) {
-            const normalizedUserId = userId.toLowerCase().trim();
-            expenses = expenses.filter(e => e.userId.toLowerCase().trim() === normalizedUserId);
+        if (!userId) {
+            return NextResponse.json({ error: "Missing userId" }, { status: 400 });
         }
+
+        // 將參數包裝給 getExpenses 函數
+        const filters = {
+            keyword,
+            startDate,
+            endDate,
+            category,
+            paymentMethod
+        };
+
+        // 直接從該 userId 的分頁獲取資料 (預設抓取 1000 筆供分頁過濾)
+        const expenses = await getExpenses(userId, 1000, filters);
 
         // 執行分頁切片：從 offset 開始取 limit 筆
         const paginatedExpenses = expenses.slice(offset, offset + limit);
@@ -47,7 +59,9 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const ids = await appendExpenses(dataList as ExpenseRow[]);
+        // 使用第一筆資料的 userId 作為目標分頁
+        const targetUserId = dataList[0].userId;
+        const ids = await appendExpenses(dataList as ExpenseRow[], targetUserId);
 
         return NextResponse.json({
             success: true,
@@ -59,3 +73,4 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: `儲存失敗：${error.message}` }, { status: 500 });
     }
 }
+

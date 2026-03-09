@@ -5,6 +5,7 @@ interface ParsedExpense {
     amount: number;
     category: string;
     date: string;
+    paymentMethod: "現金" | "信用卡";
 }
 
 interface PreviewCardProps {
@@ -18,6 +19,7 @@ const CATEGORY_ICONS: Record<string, string> = {
     飲食: "🍜",
     交通: "🚇",
     購物: "🛍️",
+    居家: "🏠",
     娛樂: "🎬",
     醫療: "💊",
     其他: "📌",
@@ -78,6 +80,7 @@ export default function PreviewCard({
                         {data.category}
                     </span>
                 </div>
+                <InfoRow label="付款方式" value={data.paymentMethod === "信用卡" ? "💳 信用卡" : "💵 現金"} />
             </div>
 
             <p

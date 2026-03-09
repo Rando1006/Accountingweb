@@ -8,9 +8,13 @@ export async function DELETE(
 ) {
     try {
         const { id } = await params;
-        if (!id) return NextResponse.json({ error: "缺少 ID" }, { status: 400 });
+        const { searchParams } = new URL(request.url);
+        const userId = searchParams.get("userId");
 
-        await deleteExpense(id);
+        if (!id) return NextResponse.json({ error: "缺少 ID" }, { status: 400 });
+        if (!userId) return NextResponse.json({ error: "缺少 userId" }, { status: 400 });
+
+        await deleteExpense(id, userId);
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error("刪除失敗:", error);
@@ -28,7 +32,11 @@ export async function PATCH(
         if (!id) return NextResponse.json({ error: "缺少 ID" }, { status: 400 });
 
         const body = await request.json();
-        await updateExpense(id, body);
+        const userId = body.userId;
+
+        if (!userId) return NextResponse.json({ error: "缺少 userId" }, { status: 400 });
+
+        await updateExpense(id, body, userId);
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
@@ -36,3 +44,4 @@ export async function PATCH(
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }
+

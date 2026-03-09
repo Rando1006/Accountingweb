@@ -11,6 +11,7 @@ interface ExpenseRow {
     category: string;
     userId: string;
     id?: string;
+    paymentMethod?: string;
 }
 
 interface DayGroup {
@@ -23,15 +24,35 @@ const CATEGORY_ICONS: Record<string, string> = {
     飲食: "🍜",
     交通: "🚇",
     購物: "🛍️",
+    居家: "🏠",
     娛樂: "🎬",
     醫療: "💊",
     其他: "📌",
 };
 
 function formatDateLabel(dateStr: string): string {
-    const date = new Date(dateStr + "T00:00:00");
+    // 處理可能出現的 2026/3/4 或 2026-3-4 格式，將其轉為標準 YYYY-MM-DD
+    const normalizedDate = dateStr.replace(/\//g, "-");
+    const parts = normalizedDate.split("-");
+    let isoDate = normalizedDate;
+
+    if (parts.length === 3) {
+        const y = parts[0];
+        const m = parts[1].padStart(2, "0");
+        const d = parts[2].padStart(2, "0");
+        isoDate = `${y}-${m}-${d}`;
+    }
+
+    const date = new Date(isoDate + "T00:00:00");
+
+    // 如果日期依然無效，直接回傳原始字串
+    if (isNaN(date.getTime())) {
+        return dateStr;
+    }
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
     const diff = Math.round((today.getTime() - date.getTime()) / 86400000);
     const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
     const w = weekdays[date.getDay()];
@@ -122,7 +143,7 @@ export default function HistoryPage() {
         if (!confirm("確定要刪除這筆紀錄嗎？🌿")) return;
 
         try {
-            const res = await fetch(`/api/expense/${id}`, { method: "DELETE" });
+            const res = await fetch(`/api/expense/${id}?userId=${userId}`, { method: "DELETE" });
             if (res.ok) {
                 fetchData(); // 重新整理
             } else {
@@ -132,6 +153,7 @@ export default function HistoryPage() {
             alert("連線出錯");
         }
     };
+
 
     const handleEditSave = async (updated: ExpenseRow) => {
         if (!updated.id) return;
@@ -239,9 +261,14 @@ export default function HistoryPage() {
                                                     <p className="text-base font-bold truncate mb-0.5" style={{ color: "var(--text-primary)" }}>
                                                         {item.item}
                                                     </p>
-                                                    <span className={`badge-${item.category} px-2.5 py-0.5 rounded-full text-[10px] font-black`}>
-                                                        {item.category}
-                                                    </span>
+                                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                                        <span className={`badge-${item.category} px-2.5 py-0.5 rounded-full text-[10px] font-black`}>
+                                                            {item.category}
+                                                        </span>
+                                                        <span className="text-[10px] bg-[var(--bg-soft)] px-2 py-0.5 rounded-full font-black opacity-80" style={{ color: "var(--text-primary)" }}>
+                                                            {item.paymentMethod && item.paymentMethod !== "現金" ? `💳 ${item.paymentMethod}` : "💵 現金"}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                                 <div className="text-lg font-black flex-shrink-0 text-right min-w-[60px]" style={{ color: "var(--text-primary)" }}>
                                                     ${item.amount.toLocaleString()}

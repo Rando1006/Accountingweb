@@ -31,38 +31,45 @@ export interface ExpenseRow {
     category: string;
     userId: string;
     id?: string;
+    paymentMethod?: string;
+}
+
+export interface ExpenseFilter {
+    keyword?: string;
+    startDate?: string;
+    endDate?: string;
+    category?: string;
+    paymentMethod?: string;
 }
 
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID!;
-const SHEET_NAME = "工作表1"; // 修正：從 Sheet1 改為工作表1
-const RANGE = `${SHEET_NAME}!A2:F`;
 
-// 輔助函式：動態獲取 工作表1 的 sheetId (用於維度操作 API)
-async function getSheetId(sheets: any) {
+// 輔助函式：動態獲取 指定使用者工作表 的 sheetId (用於維度操作 API)
+async function getSheetId(sheets: any, userId: string) {
     const spreadsheet = await sheets.spreadsheets.get({
         spreadsheetId: SPREADSHEET_ID,
     });
-    const sheet = spreadsheet.data.sheets.find((s: any) => s.properties.title === SHEET_NAME);
+    const sheet = spreadsheet.data.sheets.find((s: any) => s.properties.title === userId);
     return sheet?.properties?.sheetId ?? 0;
 }
 
 export async function appendExpense(data: ExpenseRow) {
-    const ids = await appendExpenses([data]);
+    const ids = await appendExpenses([data], data.userId);
     return ids[0];
 }
 
-export async function appendExpenses(dataList: ExpenseRow[]) {
+export async function appendExpenses(dataList: ExpenseRow[], userId: string) {
     const auth = getAuth();
     const sheets = google.sheets({ version: "v4", auth });
 
     const values = dataList.map(data => {
         const id = `${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        return [data.date, data.item, data.amount, data.category, data.userId, id];
+        return [data.date, data.item, data.amount, data.category, data.userId, id, data.paymentMethod || "現金"];
     });
 
     await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A2`,
+        range: `${userId}!A2`,
         valueInputOption: "USER_ENTERED",
         requestBody: {
             values: values,
@@ -71,38 +78,62 @@ export async function appendExpenses(dataList: ExpenseRow[]) {
     return values.map(v => v[5]); // 回傳 IDs 陣列
 }
 
-export async function getExpenses(limit: number = 30): Promise<ExpenseRow[]> {
+export async function getExpenses(userId: string, limit: number = 30, filters: ExpenseFilter = {}): Promise<ExpenseRow[]> {
     const auth = getAuth();
     const sheets = google.sheets({ version: "v4", auth });
 
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: RANGE,
+        range: `${userId}!A2:G`,
     });
 
     const rows = res.data.values;
     if (!rows || rows.length === 0) return [];
 
     return rows
-        .map((row) => ({
+        .map((row: any[]) => ({
             date: row[0] || "",
             item: row[1] || "",
             amount: parseFloat(row[2]) || 0,
             category: row[3] || "",
             userId: row[4] || "",
             id: row[5] || "",
+            paymentMethod: row[6] || "現金",
         }))
+        .filter(entry => {
+            const { keyword, startDate, endDate, category, paymentMethod } = filters;
+
+            if (startDate && entry.date < startDate) return false;
+            if (endDate && entry.date > endDate) return false;
+            if (category && category !== "全部" && entry.category !== category) return false;
+            if (paymentMethod && paymentMethod !== "全部") {
+                if (paymentMethod === "現金" && entry.paymentMethod !== "現金") return false;
+                if (paymentMethod === "信用卡/行動支付" && entry.paymentMethod === "現金") return false;
+            }
+
+            if (keyword) {
+                const keywordLower = keyword.toLowerCase();
+                const matchKeyword =
+                    entry.item.toLowerCase().includes(keywordLower) ||
+                    entry.category.toLowerCase().includes(keywordLower) ||
+                    (entry.paymentMethod?.toLowerCase() || "").includes(keywordLower);
+
+                if (!matchKeyword) return false;
+            }
+
+            return true;
+        })
         .reverse()
         .slice(0, limit);
 }
 
-export async function deleteExpense(id: string) {
+export async function deleteExpense(id: string, userId: string) {
     const auth = getAuth();
     const sheets = google.sheets({ version: "v4", auth });
 
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!F:F`,
+        range: `${userId}!F:F`,
     });
 
     const values = res.data.values;
@@ -111,7 +142,7 @@ export async function deleteExpense(id: string) {
     const rowIndex = values.findIndex(row => row[0] === id);
     if (rowIndex === -1) throw new Error("找不到該筆紀錄");
 
-    const sheetId = await getSheetId(sheets);
+    const sheetId = await getSheetId(sheets, userId);
 
     await sheets.spreadsheets.batchUpdate({
         spreadsheetId: SPREADSHEET_ID,
@@ -132,45 +163,42 @@ export async function deleteExpense(id: string) {
     });
 }
 
-export async function updateExpense(id: string, data: Partial<ExpenseRow>) {
+export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>, userId: string) {
     const auth = getAuth();
     const sheets = google.sheets({ version: "v4", auth });
 
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!F:F`,
+        range: `${userId}!A2:G`,
     });
 
-    const values = res.data.values;
-    if (!values) throw new Error("找不到資料表內容");
+    const rows = res.data.values;
+    if (!rows) throw new Error("無資料");
 
-    const rowIndex = values.findIndex(row => row[0] === id);
-    if (rowIndex === -1) throw new Error("找不到該筆紀錄");
+    const index = rows.findIndex((row) => row[5] === id);
+    if (index === -1) throw new Error("找不到該筆紀錄");
 
-    const sheetLine = rowIndex + 1;
+    const rowIndex = index + 2;
+    const currentRow = rows[index]; // 取得目前該列的原始資料
 
-    const originalRes = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A${sheetLine}:F${sheetLine}`,
-    });
-
-    const original = originalRes.data.values?.[0] || [];
-
-    const updatedValues = [
-        data.date ?? original[0],
-        data.item ?? original[1],
-        data.amount ?? original[2],
-        data.category ?? original[3],
-        original[4],
-        original[5],
+    // 重組：將新資料與舊資料合併，特別處理新增的 paymentMethod
+    const newValues = [
+        updatedData.date ?? currentRow[0],
+        updatedData.item ?? currentRow[1],
+        updatedData.amount ?? currentRow[2],
+        updatedData.category ?? currentRow[3],
+        updatedData.userId ?? currentRow[4],
+        id,
+        updatedData.paymentMethod ?? (currentRow[6] || "現金")
     ];
 
     await sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A${sheetLine}`,
+        range: `${userId}!A${rowIndex}:G${rowIndex}`,
         valueInputOption: "USER_ENTERED",
         requestBody: {
-            values: [updatedValues],
+            values: [newValues],
         },
     });
 }
+
