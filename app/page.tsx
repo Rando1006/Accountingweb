@@ -125,38 +125,38 @@ export default function Home() {
               ref={textareaRef}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="一次記多筆也可以喔！&#10;例：昨天早餐50 捷運20 晚餐100"
-              className="w-full min-h-[140px] p-3 bg-transparent border-none outline-none text-lg font-bold placeholder:opacity-30 resize-none"
+              placeholder="一次記多筆也可以喔！&#10;例：昨天早馇50 捷運20 晚馇50"
+              className="w-full min-h-[100px] p-3 bg-transparent border-none outline-none text-lg font-bold placeholder:opacity-30 resize-none"
               style={{ color: "var(--text-primary)" }}
             />
 
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setInputText("午餐150")}
-                  className="px-3 py-1.5 bg-[var(--bg-soft)] text-[var(--accent)] text-[11px] font-black rounded-full hover:bg-[var(--accent)] hover:text-white transition-colors"
-                >
-                  午餐150
-                </button>
-                <button
-                  onClick={() => setInputText("昨天看醫生200")}
-                  className="px-3 py-1.5 bg-[var(--bg-soft)] text-[var(--status-blue)] text-[11px] font-black rounded-full hover:bg-[var(--status-blue)] hover:text-white transition-colors"
-                >
-                  補記昨天
-                </button>
-              </div>
-
+            {/* 快捷按鈕列 */}
+            <div className="flex gap-2.5 mt-2 mb-5">
               <button
-                onClick={handleParse}
-                disabled={parsing || !inputText.trim()}
-                className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:grayscale"
+                onClick={() => setInputText("午餐150")}
+                className="flex items-center gap-1.5 px-4 py-2 bg-[var(--bg-soft)] text-[var(--accent)] text-sm font-black rounded-full hover:bg-[var(--accent)] hover:text-white transition-all shadow-sm border border-[var(--accent)]/10"
               >
-                {parsing ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : "✨"}
-                {parsing ? "正在通靈..." : "解析記帳"}
+                🍜 午餐 150
+              </button>
+              <button
+                onClick={() => setInputText("昨天看醫生200")}
+                className="flex items-center gap-1.5 px-4 py-2 bg-[var(--bg-soft)] text-[var(--status-blue)] text-sm font-black rounded-full hover:bg-[var(--status-blue)] hover:text-white transition-all shadow-sm border border-[var(--status-blue)]/10"
+              >
+                🗓 補記昨天
               </button>
             </div>
+
+            {/* 解析按鈕——全寬置底，符合向下視線流動 */}
+            <button
+              onClick={handleParse}
+              disabled={parsing || !inputText.trim()}
+              className="w-full py-8 mt-2 bg-[var(--accent)] hover:bg-[#74b036] text-white font-black text-2xl rounded-[32px] shadow-md shadow-green-200 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-40 disabled:grayscale"
+            >
+              {parsing ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : "✨"}
+              {parsing ? "正在通靈..." : "解析記帳"}
+            </button>
           </div>
 
           {statusMsg && (
@@ -177,24 +177,24 @@ export default function Home() {
               <div className="space-y-4">
                 {previews.map((item, idx) => (
                   <div key={idx} className="glass-card mx-2 px-6 py-5 group animate-soft-in" style={{ borderBottomWidth: "6px" }}>
-                    <div className="flex justify-between items-start mb-3 pt-1">
+                    <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 bg-[var(--bg-soft)] text-[var(--accent)] text-[10px] font-black rounded-md">
+                        <span className="px-3 py-1 bg-[var(--bg-soft)] text-[var(--accent)] text-xs font-black rounded-lg">
                           {item.date}
                         </span>
-                        <span className="px-2 py-0.5 bg-blue-50 text-blue-500 text-[10px] font-black rounded-md">
+                        <span className="px-3 py-1 bg-blue-50 text-blue-500 text-xs font-black rounded-lg">
                           {item.category}
                         </span>
                       </div>
                       <button
                         onClick={() => removeItem(idx)}
-                        className="w-6 h-6 flex items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                        className="w-7 h-7 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-colors text-sm font-black"
                       >
                         ✕
                       </button>
                     </div>
 
-                    <div className="flex justify-between items-end pb-3">
+                    <div className="flex justify-between items-end pb-1">
                       <h4 className="text-xl font-black truncate max-w-[65%]" style={{ color: "var(--text-primary)" }}>
                         {item.item}
                       </h4>
@@ -210,19 +210,20 @@ export default function Home() {
               <button
                 onClick={handleSaveAll}
                 disabled={saving}
-                className="w-full py-5 bg-[var(--accent)] hover:bg-[#74b036] text-white font-black text-lg rounded-[28px] shadow-lg shadow-green-200 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:grayscale"
+                className="w-full py-9 mb-6 bg-[var(--accent)] hover:bg-[#74b036] text-white font-black text-3xl rounded-[36px] shadow-xl shadow-green-200 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:grayscale"
               >
                 {saving ? (
-                  <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-7 h-7 border-4 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : "🌱"}
-                {saving ? "正在播種..." : "全部種下 (儲存到試算表)"}
+                {saving ? "正在播種..." : "全部種下"}
               </button>
 
               <button
-                onClick={() => setPreviews([])}
-                className="w-full text-[11px] font-black opacity-40 hover:opacity-100 py-2 transition-opacity"
+                onClick={() => { setPreviews([]); setInputText(""); }}
+                className="w-full py-6 text-xl font-black rounded-[28px] border-2 border-dashed border-[var(--border)] hover:border-red-300 hover:text-red-400 transition-all text-center"
+                style={{ color: "var(--text-muted)" }}
               >
-                清空並重新輸入
+                🗑 清空並重新輸入
               </button>
             </div>
           )}
