@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
             paymentMethod
         };
 
-        // 直接從該 userId 的分頁獲取資料 (預設抓取 1000 筆供分頁過濾)
-        const expenses = await getExpenses(userId, 1000, filters);
+        // 直接從該 userId 的分頁獲取資料 (預設抓取 5000 筆供分頁過濾)
+        const expenses = await getExpenses(userId, 5000, filters);
 
         // 執行分頁切片：從 offset 開始取 limit 筆
         const paginatedExpenses = expenses.slice(offset, offset + limit);

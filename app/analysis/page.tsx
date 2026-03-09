@@ -47,7 +47,7 @@ export default function AnalysisPage() {
         const savedId = localStorage.getItem("pocket_account_user_id");
         if (savedId) setUserId(savedId);
 
-        fetch(`/api/expense?userId=${savedId || "default"}&limit=300`)
+        fetch(`/api/expense?userId=${savedId || "default"}&limit=5000`)
             .then((r) => r.json())
             .then((res) => {
                 if (Array.isArray(res)) {
