@@ -123,11 +123,11 @@ export default function SearchPage() {
     const totalAmount = results.reduce((sum, item) => sum + item.amount, 0);
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ background: "var(--bg-primary)" }}>
+        <div className="min-h-screen flex flex-col overflow-x-hidden relative" style={{ background: "var(--bg-primary)" }}>
             <div className="decoration-blob w-[300px] h-[300px] bg-green-100 top-[-100px] left-[-100px]" />
             <div className="decoration-blob w-[250px] h-[250px] bg-blue-50 bottom-[10%] right-[-50px]" />
 
-            <main className="flex-1 flex flex-col px-4 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+            <main className="flex-1 flex flex-col px-4 pt-16 pb-40 max-w-lg mx-auto w-full relative z-10">
                 <header className="mb-6 px-2 animate-soft-in">
                     <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
                         搜尋紀錄
@@ -135,7 +135,7 @@ export default function SearchPage() {
                     {/* 標題與搜尋框之間的間距 */}
                     <div className="h-12" />
 
-                    <div className="relative mb-4">
+                    <div className="relative mb-6">
                         <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none z-10">
                             <span className="text-xl opacity-40">🔍</span>
                         </div>
@@ -157,7 +157,7 @@ export default function SearchPage() {
                     </div>
 
                     {/* 進階篩選區塊 */}
-                    <div className="glass-card p-5 rounded-[24px] space-y-5 shadow-sm">
+                    <div className="glass-card p-5 rounded-[24px] space-y-5 shadow-sm mb-6">
                         <div className="flex gap-4">
                             <div className="flex-1">
                                 <label className="block text-[12px] font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--text-muted)" }}>開始日期</label>
@@ -244,55 +244,62 @@ export default function SearchPage() {
                         </div>
                     ) : (
                         <div className="space-y-3 animate-soft-in">
-                            <div className="glass-card p-5 rounded-[24px] flex items-center justify-between border-2 border-dashed border-[var(--accent)]/30 bg-white/40 mb-4">
-                                <div className="flex flex-col">
-                                    <span className="text-[11px] font-black uppercase tracking-widest opacity-60" style={{ color: "var(--text-muted)" }}>
-                                        🎯 符合條件共 {results.length} 筆
-                                    </span>
-                                    <span className="text-sm font-black mt-1" style={{ color: "var(--text-primary)" }}>
-                                        搜尋結果總花費
-                                    </span>
-                                </div>
-                                <div className="text-3xl font-black" style={{ color: "var(--accent)" }}>
-                                    <span className="text-lg mr-0.5 opacity-60">$</span>{totalAmount.toLocaleString()}
+                            <div className="glass-card py-8 px-5 rounded-[24px] flex flex-col items-center justify-center text-center border-2 border-dashed border-[var(--accent)]/30 bg-white/40 mb-6">
+                                <span className="text-[11px] font-black uppercase tracking-[0.2em] opacity-60 mb-2" style={{ color: "var(--text-muted)" }}>
+                                    🎯 符合條件共 {results.length} 筆
+                                </span>
+                                <span className="text-lg font-black tracking-widest mb-3" style={{ color: "var(--text-primary)" }}>
+                                    搜尋結果總花費
+                                </span>
+                                <div className="text-5xl font-black tracking-tighter" style={{ color: "var(--text-primary)" }}>
+                                    <span className="text-2xl mr-1 opacity-50">$</span>{totalAmount.toLocaleString()}
                                 </div>
                             </div>
 
-                            <div className="space-y-2.5">
-                                {results.map((item, idx) => (
-                                    <div
-                                        key={idx}
-                                        className="glass-card px-4 py-3.5 rounded-[22px] cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all bg-white/70 shadow-sm border border-white"
-                                        onClick={() => setEditData(item)}
-                                    >
-                                        {/* 第一行：圖示 + 標題 */}
-                                        <div className="flex items-center gap-2 mb-1.5">
-                                            <div className="w-6 h-6 rounded-[8px] bg-[var(--bg-soft)] flex items-center justify-center text-sm flex-shrink-0 shadow-inner">
-                                                {CATEGORY_ICONS[item.category] ?? "📌"}
+                            <div className="space-y-4 pb-8 mt-2 animate-soft-in mx-0.5 sm:mx-2">
+                                <div className="bg-white/60 backdrop-blur-md shadow-sm border border-[var(--border)] overflow-hidden rounded-[24px]">
+                                    {results.map((item, idx) => (
+                                        <div
+                                            key={idx}
+                                            className={`flex overflow-hidden ${idx < results.length - 1 ? "border-b-[1.5px] border-dashed border-[#f0f0f0]" : ""}`}
+                                        >
+                                            <div 
+                                                className="w-full py-4 px-4 sm:px-6 bg-white/50 cursor-pointer hover:bg-white/80 transition-colors"
+                                                onClick={() => setEditData(item)}
+                                            >
+                                                <div className="flex items-start justify-between w-[92%] max-w-[380px] mx-auto gap-3">
+                                                    {/* 左側大 Icon */}
+                                                    <div className="text-3xl flex-shrink-0 mr-1 opacity-90 drop-shadow-sm mt-0.5">
+                                                        {CATEGORY_ICONS[item.category] ?? "📌"}
+                                                    </div>
+                                                    
+                                                    {/* 中間文字區塊：允許被截斷與換行 */}
+                                                    <div className="flex-1 min-w-0 overflow-hidden">
+                                                        <p className="text-[1.05rem] font-semibold truncate mb-1" style={{ color: "var(--text-primary)" }}>
+                                                            {item.item}
+                                                        </p>
+                                                        <div className="flex items-center gap-1.5 pt-0.5 overflow-hidden">
+                                                            <span className={`badge-${item.category} px-2.5 py-0.5 rounded-full text-[10px] font-black flex-shrink-0`}>
+                                                                {item.category}
+                                                            </span>
+                                                            <span className="text-[10px] bg-[var(--bg-soft)] px-2 py-0.5 rounded-full font-black opacity-80 flex-shrink-0 truncate" style={{ color: "var(--text-primary)" }}>
+                                                                {item.paymentMethod && item.paymentMethod !== "現金" ? `💳 ${item.paymentMethod}` : "💵 現金"}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold opacity-40 flex-shrink-0" style={{ color: "var(--text-primary)" }}>
+                                                                {item.date.replace(/-/g, "/")}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* 右側金額 (獨立區塊不動如山) */}
+                                                    <div className="text-xl font-black flex-shrink-0 text-right tracking-tighter pt-1" style={{ color: "var(--text-primary)" }}>
+                                                        <span className="text-sm opacity-50 mr-0.5">$</span>{item.amount.toLocaleString()}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <p className="text-[15px] font-black truncate" style={{ color: "var(--text-primary)" }}>
-                                                {item.item}
-                                            </p>
                                         </div>
-                                        {/* 第二行：金額（左） + 標籤列（右對齊） */}
-                                        <div className="flex items-center justify-between pl-8">
-                                            <span className="text-[15px] font-black" style={{ color: "var(--text-primary)" }}>
-                                                <span className="text-xs mr-0.5 opacity-30">$</span>{item.amount.toLocaleString()}
-                                            </span>
-                                            <div className="flex items-center gap-1.5 flex-shrink-0">
-                                                <span className={`badge-${item.category} px-2 py-0.5 rounded-full text-[9px] font-black`}>
-                                                    {item.category}
-                                                </span>
-                                                <span className="text-[9px] bg-black/5 px-2 py-0.5 rounded-full font-bold opacity-60 border border-black/5" style={{ color: "var(--text-primary)" }}>
-                                                    {item.paymentMethod && item.paymentMethod !== "現金" ? `💳 ${item.paymentMethod}` : "💵 現金"}
-                                                </span>
-                                                <span className="text-[9px] font-bold opacity-30" style={{ color: "var(--text-muted)" }}>
-                                                    {item.date.replace(/-/g, "/")}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     )}
