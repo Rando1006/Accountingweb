@@ -215,11 +215,11 @@ export default function AnalysisPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ background: "var(--bg-primary)" }}>
+        <div className="min-h-screen flex flex-col overflow-x-hidden relative" style={{ background: "var(--bg-primary)" }}>
             <div className="decoration-blob w-[400px] h-[400px] bg-blue-50 top-[-200px] right-[-150px]" />
             <div className="decoration-blob w-[300px] h-[300px] bg-green-50 bottom-[10%] left-[-100px]" />
 
-            <main className="flex-1 flex flex-col px-6 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+            <main className="flex-1 flex flex-col px-6 pt-16 pb-40 max-w-lg mx-auto w-full relative z-10">
                 <header className="mb-8 px-2 animate-soft-in">
                     <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
                         支出分析
@@ -281,7 +281,7 @@ export default function AnalysisPage() {
                             <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: "var(--text-muted)" }}>
                                 {periodLabelText}總支出
                             </p>
-                            <h2 className="text-5xl font-black tracking-tighter flex items-center justify-center gap-2" style={{ color: "var(--text-primary)" }}>
+                            <h2 className="font-sans text-5xl font-black tracking-tighter flex items-center justify-center gap-2 text-[#333]">
                                 <span className="text-3xl opacity-60 mt-2" style={{ transform: "translateY(2px)" }}>$</span>
                                 {totalAmount.toLocaleString()}
                             </h2>
@@ -289,10 +289,10 @@ export default function AnalysisPage() {
                             <button
                                 onClick={handleAIAnalysis}
                                 disabled={analyzingAI}
-                                className="mt-8 px-12 py-5 bg-[var(--bg-soft)] hover:bg-[var(--accent)] hover:text-white text-[var(--accent)] text-lg font-black rounded-full transition-all border-2 border-transparent hover:shadow-xl inline-flex items-center gap-3"
+                                className="mt-8 px-8 py-3.5 bg-[var(--bg-soft)] hover:bg-[var(--accent)] hover:text-white text-[var(--accent)] text-[1.05rem] font-bold rounded-[20px] transition-all border-2 border-transparent hover:shadow-lg inline-flex items-center gap-2.5 active:scale-95"
                             >
                                 {analyzingAI ? (
-                                    <div className="w-5 h-5 border-3 border-[var(--accent)] border-t-white rounded-full animate-spin" />
+                                    <div className="w-4 h-4 border-[3px] border-[var(--accent)] border-t-white rounded-full animate-spin" />
                                 ) : "✨"}
                                 {analyzingAI ? "正在生成建議..." : "查看 AI 理財建議"}
                             </button>
@@ -303,22 +303,45 @@ export default function AnalysisPage() {
                                 <span className="w-2 h-5 bg-[var(--status-pink)] rounded-full flex-shrink-0" />
                                 各類別占比
                             </h3>
-                            <AnalysisCharts data={chartData} />
+                            <div className="mb-4">
+                                <AnalysisCharts data={chartData} />
+                            </div>
                         </div>
 
-                        <div className="space-y-3">
+                        {/* 分類清單 (List-view) */}
+                        <div className="mx-2 bg-white/60 backdrop-blur-md rounded-[1.5rem] border border-[var(--border)] shadow-sm overflow-hidden flex flex-col">
                             {chartData.labels.map((label, idx) => {
                                 const amount = chartData.datasets[0].data[idx];
                                 const percentage = ((amount / totalAmount) * 100).toFixed(1);
+                                const isLast = idx === chartData.labels.length - 1;
+
                                 return (
-                                    <div key={label} className="flex items-center justify-between p-5 glass-card mx-2">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-4 h-4 rounded-full shadow-inner" style={{ backgroundColor: CATEGORY_COLORS[label] }} />
-                                            <span className="text-base font-black" style={{ color: "var(--text-primary)" }}>{label}</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-lg font-black" style={{ color: "var(--text-primary)" }}>${amount.toLocaleString()}</p>
-                                            <p className="text-[10px] font-bold opacity-60" style={{ color: "var(--text-muted)" }}>{percentage}%</p>
+                                    <div 
+                                        key={label} 
+                                        className={`py-4 ${!isLast ? 'border-b border-[#f0f0f0]' : ''}`}
+                                    >
+                                        <div className="flex items-center justify-between w-[92%] max-w-[400px] mx-auto">
+                                            {/* 左側：顏色標記與類別名 */}
+                                            <div className="flex items-center gap-3.5">
+                                                <div 
+                                                    className="w-3.5 h-3.5 rounded-full shadow-inner" 
+                                                    style={{ backgroundColor: CATEGORY_COLORS[label] }} 
+                                                />
+                                                <span className="text-[1.05rem] font-bold text-[#3d4a2a]">
+                                                    {label}
+                                                </span>
+                                            </div>
+                                            
+                                            {/* 右側：金額與佔比 */}
+                                            <div className="text-right flex flex-col justify-center items-end pl-2">
+                                                <p className="font-sans text-[1.15rem] font-black tracking-tighter text-[#333] leading-tight">
+                                                    <span className="text-[11px] opacity-40 font-sans font-bold mr-1">$</span>
+                                                    {amount.toLocaleString()}
+                                                </p>
+                                                <p className="text-[11px] font-bold text-[#9ca3af] mt-1">
+                                                    {percentage}%
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 );

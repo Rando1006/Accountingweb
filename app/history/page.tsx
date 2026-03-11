@@ -177,11 +177,11 @@ export default function HistoryPage() {
     const totalAll = groups.reduce((s, g) => s + g.total, 0);
 
     return (
-        <div className="min-h-screen flex flex-col" style={{ background: "var(--bg-primary)" }}>
+        <div className="min-h-screen flex flex-col overflow-x-hidden relative" style={{ background: "var(--bg-primary)" }}>
             <div className="decoration-blob w-[300px] h-[300px] bg-green-100 top-[-100px] left-[-100px]" />
             <div className="decoration-blob w-[250px] h-[250px] bg-pink-50 bottom-[10%] right-[-50px]" />
 
-            <main className="flex-1 flex flex-col px-4 pt-16 pb-32 max-w-lg mx-auto w-full relative z-10">
+            <main className="flex-1 flex flex-col px-4 pt-16 pb-40 max-w-lg mx-auto w-full relative z-10">
                 <header className="mb-6 px-2 animate-soft-in">
                     <div className="flex items-end justify-between mb-4">
                         <div>
@@ -231,64 +231,66 @@ export default function HistoryPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-8 animate-soft-in">
+                    <div className="space-y-12 animate-soft-in">
                         {groups.map((group) => (
                             <div key={group.date}>
-                                <div className="flex items-center justify-between px-1 mb-3">
-                                    <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto mb-3">
+                                    <span className="text-xs font-bold uppercase tracking-widest text-[#9ca3af]">
                                         {formatDateLabel(group.date)}
                                     </span>
-                                    <span className="text-xs font-black px-3 py-1 bg-white border-2 border-[var(--border)] rounded-full shadow-sm" style={{ color: "var(--text-primary)" }}>
+                                    <span className="text-[13px] font-black tracking-tight text-[#9ca3af]">
                                         ${group.total.toLocaleString()}
                                     </span>
                                 </div>
 
-                                <div className="glass-card overflow-hidden rounded-2xl">
+                                <div className="bg-white/60 backdrop-blur-md shadow-sm border border-[var(--border)] overflow-hidden rounded-[1.25rem]">
                                     {group.items.map((item, idx) => (
                                         <div
                                             key={idx}
-                                            className={`flex overflow-x-auto snap-x snap-mandatory ${idx < group.items.length - 1 ? "border-b-2 border-dashed border-[var(--border)]" : ""
+                                            className={`flex overflow-x-auto snap-x snap-mandatory ${idx < group.items.length - 1 ? "border-b-[1.5px] border-dashed border-[#f0f0f0]" : ""
                                                 }`}
                                             // 隱藏滾動條的 inline style
                                             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                                         >
                                             {/* 主要內容區 (滑動前看到的範圍) */}
-                                            <div className="w-full flex-shrink-0 snap-center flex items-center gap-3 pl-4 pr-5 py-4 bg-white/50">
-                                                <div className="w-11 h-11 rounded-[16px] bg-[var(--bg-soft)] flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
-                                                    {CATEGORY_ICONS[item.category] ?? "📌"}
-                                                </div>
-                                                <div className="flex-1 min-w-0 overflow-hidden">
-                                                    <p className="text-base font-bold truncate mb-0.5" style={{ color: "var(--text-primary)" }}>
-                                                        {item.item}
-                                                    </p>
-                                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                                        <span className={`badge-${item.category} px-2.5 py-0.5 rounded-full text-[10px] font-black`}>
-                                                            {item.category}
-                                                        </span>
-                                                        <span className="text-[10px] bg-[var(--bg-soft)] px-2 py-0.5 rounded-full font-black opacity-80" style={{ color: "var(--text-primary)" }}>
-                                                            {item.paymentMethod && item.paymentMethod !== "現金" ? `💳 ${item.paymentMethod}` : "💵 現金"}
-                                                        </span>
+                                            <div className="w-full flex-shrink-0 snap-center py-4 bg-white/50">
+                                                <div className="flex items-center justify-between w-[94%] max-w-[400px] mx-auto gap-3">
+                                                    <div className="text-3xl flex-shrink-0 mr-1 opacity-90 drop-shadow-sm">
+                                                        {CATEGORY_ICONS[item.category] ?? "📌"}
                                                     </div>
-                                                </div>
-                                                <div className="text-lg font-black flex-shrink-0 text-right min-w-[60px]" style={{ color: "var(--text-primary)" }}>
-                                                    ${item.amount.toLocaleString()}
+                                                    <div className="flex-1 min-w-0 overflow-hidden">
+                                                        <p className="text-[1.05rem] font-semibold truncate mb-1" style={{ color: "var(--text-primary)" }}>
+                                                            {item.item}
+                                                        </p>
+                                                        <div className="flex items-center gap-1.5 pt-0.5">
+                                                            <span className={`badge-${item.category} px-2.5 py-0.5 rounded-full text-[10px] font-black`}>
+                                                                {item.category}
+                                                            </span>
+                                                            <span className="text-[10px] bg-[var(--bg-soft)] px-2 py-0.5 rounded-full font-black opacity-80" style={{ color: "var(--text-primary)" }}>
+                                                                {item.paymentMethod && item.paymentMethod !== "現金" ? `💳 ${item.paymentMethod}` : "💵 現金"}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="font-sans text-xl font-black flex-shrink-0 text-right tracking-tighter text-[#333]">
+                                                        <span className="text-sm opacity-50 mr-0.5">$</span>{item.amount.toLocaleString()}
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             {/* 操作區塊 (向左滑動後出現) */}
-                                            <div className="flex shrink-0 snap-end px-3 gap-2 items-center bg-[var(--bg-primary)] border-l border-[var(--border)]">
+                                            <div className="flex shrink-0 snap-end px-3 gap-2.5 items-center bg-transparent border-l border-[#f0f0f0]">
                                                 <button
                                                     onClick={() => {
                                                         setEditingItem(item);
                                                         setIsEditOpen(true);
                                                     }}
-                                                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[var(--bg-soft)] text-lg shadow-sm hover:scale-105 transition-transform"
+                                                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:text-gray-600 hover:bg-gray-100 text-lg shadow-sm hover:scale-105 transition-all"
                                                 >
                                                     ✏️
                                                 </button>
                                                 <button
                                                     onClick={() => item.id && handleDelete(item.id)}
-                                                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-red-50 text-lg shadow-sm hover:scale-105 transition-transform"
+                                                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 text-red-400 hover:text-red-500 hover:bg-red-100 text-lg shadow-sm hover:scale-105 transition-all"
                                                 >
                                                     🗑️
                                                 </button>

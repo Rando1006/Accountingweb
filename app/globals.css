@@ -63,17 +63,17 @@ body {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(133, 194, 66, 0.08);
+  border: 1px solid #e0e0e0;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
-  overflow: hidden;
   /* 確保內容不超出垂直框架 */
   display: flex;
   flex-direction: column;
   height: auto;
   min-height: fit-content;
+  padding: 1.75rem; /* 強制寫入卡片內緣，約 28px 防止裁切 */
 }
 
 .glass-card:active {
@@ -180,9 +180,11 @@ body {
   transform: translateX(-50%);
   width: calc(100% - 48px);
   max-width: 400px;
-  height: 72px;
-  background: white;
-  border: 2px solid var(--border);
+  height: 70px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid #e0e0e0;
   border-radius: 40px;
   display: flex;
   justify-content: space-around;
@@ -206,6 +208,22 @@ body {
 
 .animate-soft-in {
   animation: soft-fade-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* 種下動畫 */
+@keyframes plant-down {
+  0% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8) translateY(20px);
+    opacity: 0;
+  }
+}
+
+.is-planting {
+  animation: plant-down 0.4s cubic-bezier(0.5, 0, 0.2, 1) forwards !important;
 }
 
 /* 遊戲氣泡裝飾 */

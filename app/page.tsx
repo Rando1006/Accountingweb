@@ -18,6 +18,7 @@ export default function Home() {
   const [previews, setPreviews] = useState<ParsedExpense[]>([]);
   const [userId, setUserId] = useState("default");
   const [saving, setSaving] = useState(false);
+  const [isPlanting, setIsPlanting] = useState(false);
   const [statusMsg, setStatusMsg] = useState("");
   const [isUserSettingOpen, setIsUserSettingOpen] = useState(false);
 
@@ -66,6 +67,11 @@ export default function Home() {
   const handleSaveAll = async () => {
     if (previews.length === 0) return;
     setSaving(true);
+    setIsPlanting(true);
+    
+    // 等待動畫播放 (400ms)
+    await new Promise(resolve => setTimeout(resolve, 400));
+    
     try {
       const dataToSave = previews.map(p => ({ ...p, userId }));
       const res = await fetch("/api/expense", {
@@ -85,6 +91,7 @@ export default function Home() {
       setStatusMsg("連線中斷，請確認網路 🌸");
     } finally {
       setSaving(false);
+      setIsPlanting(false);
     }
   };
 
@@ -125,13 +132,13 @@ export default function Home() {
               ref={textareaRef}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="一次記多筆也可以喔！&#10;例：昨天早馇50 捷運20 晚馇50"
-              className="w-full min-h-[100px] p-3 bg-transparent border-none outline-none text-lg font-bold placeholder:opacity-30 resize-none"
-              style={{ color: "var(--text-primary)" }}
+              placeholder="一次記多筆也可以喔！&#10;例：昨天早餐50 捷運20 晚餐50"
+              className="w-full min-h-[120px] bg-white/70 border border-transparent focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 rounded-2xl outline-none text-lg font-bold placeholder:opacity-40 resize-none transition-all shadow-inner"
+              style={{ color: "var(--text-primary)", padding: "24px", lineHeight: "1.8" }}
             />
 
             {/* 快捷按鈕列 */}
-            <div className="flex gap-2.5 mt-2 mb-5">
+            <div className="flex gap-2.5 mt-5 mb-6 px-2 flex-wrap">
               <button
                 onClick={() => setInputText("午餐150")}
                 className="flex items-center gap-1.5 px-4 py-2 bg-[var(--bg-soft)] text-[var(--accent)] text-sm font-black rounded-full hover:bg-[var(--accent)] hover:text-white transition-all shadow-sm border border-[var(--accent)]/10"
@@ -146,17 +153,19 @@ export default function Home() {
               </button>
             </div>
 
-            {/* 解析按鈕——全寬置底，符合向下視線流動 */}
-            <button
-              onClick={handleParse}
-              disabled={parsing || !inputText.trim()}
-              className="w-full py-8 mt-2 bg-[var(--accent)] hover:bg-[#74b036] text-white font-black text-2xl rounded-[32px] shadow-md shadow-green-200 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-40 disabled:grayscale"
-            >
-              {parsing ? (
-                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : "✨"}
-              {parsing ? "正在通靈..." : "解析記帳"}
-            </button>
+            {/* 解析按鈕——美甲友善/大熱區滿版設計 */}
+            <div className="mt-4 pb-2">
+              <button
+                onClick={handleParse}
+                disabled={parsing || !inputText.trim()}
+                className="w-full py-[18px] bg-[#e8f5e9] text-[#2e7d32] font-black text-xl rounded-[1.25rem] transition-all flex items-center justify-center gap-2 shadow-sm active:scale-95 disabled:opacity-40 disabled:grayscale hover:bg-[#c8e6c9]"
+              >
+                {parsing ? (
+                  <div className="w-6 h-6 border-2 border-[#2e7d32]/30 border-t-[#2e7d32] rounded-full animate-spin" />
+                ) : "✨"}
+                {parsing ? "正在通靈..." : "解析記帳"}
+              </button>
+            </div>
           </div>
 
           {statusMsg && (
@@ -174,34 +183,40 @@ export default function Home() {
                 </h3>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-0">
                 {previews.map((item, idx) => (
-                  <div key={idx} className="glass-card mx-2 px-6 py-5 group animate-soft-in" style={{ borderBottomWidth: "6px" }}>
-                    <div className="flex justify-between items-center mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 bg-[var(--bg-soft)] text-[var(--accent)] text-xs font-black rounded-lg">
+                  <div key={idx} className={`border-b border-[#f0f0f0] last:border-b-0 py-4 px-2 group animate-soft-in ${isPlanting ? 'is-planting' : ''}`} style={{ animationDelay: isPlanting ? `${idx * 50}ms` : '0ms' }}>
+                    <div className="flex justify-between items-center gap-4">
+                      {/* 左：日期與分類 (上下排列) */}
+                      <div className="flex flex-col gap-1.5 shrink-0 w-[80px]">
+                        <span className="text-[10px] text-[#9ca3af] tracking-wider font-bold leading-none">
                           {item.date}
                         </span>
-                        <span className="px-3 py-1 bg-blue-50 text-blue-500 text-xs font-black rounded-lg">
+                        <span className="bg-[#e8f5e9] text-[#4caf50] rounded-[12px] px-3 py-1 text-[11px] font-black w-fit leading-none">
                           {item.category}
                         </span>
                       </div>
-                      <button
-                        onClick={() => removeItem(idx)}
-                        className="w-7 h-7 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-colors text-sm font-black"
-                      >
-                        ✕
-                      </button>
-                    </div>
+                      
+                      {/* 中：品項 */}
+                      <div className="flex-1 min-w-0 pl-1">
+                         <h4 className="text-[1.1rem] font-bold truncate" style={{ color: "var(--text-primary)" }}>
+                           {item.item}
+                         </h4>
+                      </div>
 
-                    <div className="flex justify-between items-end pb-1">
-                      <h4 className="text-xl font-black truncate max-w-[65%]" style={{ color: "var(--text-primary)" }}>
-                        {item.item}
-                      </h4>
-                      <p className="text-2xl font-black tracking-tighter pr-2" style={{ color: "var(--text-primary)" }}>
-                        <span className="text-sm opacity-50 mr-0.5">$</span>
-                        {item.amount.toLocaleString()}
-                      </p>
+                      {/* 右：金額與刪除 */}
+                      <div className="flex items-center gap-5 shrink-0">
+                        <p className="font-sans font-black text-xl tracking-tighter text-[#333]">
+                          <span className="text-sm opacity-50 mr-0.5">$</span>
+                          {item.amount.toLocaleString()}
+                        </p>
+                        <button
+                          onClick={() => removeItem(idx)}
+                          className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors text-lg font-black -mr-1"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -210,20 +225,24 @@ export default function Home() {
               <button
                 onClick={handleSaveAll}
                 disabled={saving}
-                className="w-full py-9 mb-6 bg-[var(--accent)] hover:bg-[#74b036] text-white font-black text-3xl rounded-[36px] shadow-xl shadow-green-200 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:grayscale"
+                className="w-full py-7 mb-4 bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white font-black text-2xl rounded-[1.5rem] shadow-xl shadow-[var(--accent)]/40 transition-all flex items-center justify-center gap-3 active:scale-95 active:shadow-md disabled:grayscale"
               >
                 {saving ? (
-                  <div className="w-7 h-7 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : "🌱"}
                 {saving ? "正在播種..." : "全部種下"}
               </button>
 
               <button
                 onClick={() => { setPreviews([]); setInputText(""); }}
-                className="w-full py-6 text-xl font-black rounded-[28px] border-2 border-dashed border-[var(--border)] hover:border-red-300 hover:text-red-400 transition-all text-center"
+                className="w-full py-4 text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-50 hover:text-red-500 rounded-[1.5rem] transition-all text-center"
                 style={{ color: "var(--text-muted)" }}
               >
-                🗑 清空並重新輸入
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                </svg>
+                清空並重新輸入
               </button>
             </div>
           )}
