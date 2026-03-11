@@ -73,7 +73,7 @@ body {
   flex-direction: column;
   height: auto;
   min-height: fit-content;
-  padding: 1.75rem; /* 強制寫入卡片內緣，約 28px 防止裁切 */
+  padding: max(1.5rem, 5vw); /* 響應式 padding，防止在小螢幕被擠壓 */
 }
 
 .glass-card:active {
@@ -233,4 +233,35 @@ body {
   border-radius: 50%;
   filter: blur(60px);
   opacity: 0.4;
+}
+
+/* 背景漂浮動畫 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.05);
+  }
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 8s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+/* 填補 Tailwind v4 可能缺少的 shake 動畫 */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px) rotate(-1deg); }
+  50% { transform: translateX(5px) rotate(1deg); }
+  75% { transform: translateX(-5px) rotate(-1deg); }
+}
+
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
 }

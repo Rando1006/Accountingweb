@@ -35,15 +35,15 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: "var(--bg-primary)" }}>
+        <div className="min-h-[100dvh] flex flex-col items-center justify-center p-4 sm:p-6" style={{ background: "var(--bg-primary)" }}>
             {/* 裝飾氣泡 */}
-            <div className="decoration-blob w-64 h-64 bg-green-200 top-[-100px] left-[-100px]" />
-            <div className="decoration-blob w-48 h-48 bg-pink-100 bottom-[-50px] right-[-50px]" />
+            <div className="decoration-blob w-64 h-64 bg-green-200 top-[-50px] left-[-50px] animate-float" />
+            <div className="decoration-blob w-48 h-48 bg-pink-100 bottom-[-20px] right-[-30px] animate-float-delayed" />
 
-            <div className="w-full max-w-sm glass-card p-10 space-y-8 animate-soft-in">
+            <div className="w-full max-w-sm glass-card space-y-8 animate-soft-in">
                 <div className="text-center">
                     <div
-                        className="inline-flex items-center justify-center w-20 h-20 rounded-[32px] mb-6 shadow-lg bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)]"
+                        className="inline-flex items-center justify-center w-20 h-20 rounded-[32px] mb-6 shadow-lg bg-gradient-to-br from-[var(--accent)] to-[var(--accent-hover)] hover:scale-110 transition-transform duration-300 cursor-pointer"
                         style={{ borderBottom: "6px solid rgba(0,0,0,0.15)" }}
                     >
                         <span style={{ fontSize: "2.5rem" }}>🌱</span>
@@ -58,39 +58,43 @@ export default function LoginPage() {
 
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div className="space-y-2">
-                        <label className="block text-xs font-black uppercase tracking-widest pl-1" style={{ color: "var(--accent)" }}>
+                        <label className="block text-xs font-black uppercase tracking-[0.15em] pl-1 text-[var(--text-muted)]">
                             Access Password
                         </label>
                         <input
                             type="password"
-                            className="expense-input text-center tracking-[0.5em] text-xl"
+                            className="expense-input text-center tracking-widest text-xl font-bold"
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            maxLength={20}
                             required
                             autoFocus
                         />
                     </div>
 
                     {error && (
-                        <div className="p-3 bg-red-50 border-2 border-red-100 rounded-2xl text-red-500 text-xs font-bold text-center animate-shake">
-                            ⚠️ {error}
+                        <div className="p-3 bg-[rgba(245,160,193,0.15)] border-2 border-[#f5a0c1] rounded-2xl text-[#d45887] text-xs font-bold text-center animate-shake">
+                            🌸 {error}
                         </div>
                     )}
 
-                    <button
-                        type="submit"
-                        className="btn-primary w-full flex items-center justify-center gap-3"
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                            <>
+                    <div className="relative">
+                        <button
+                            type="submit"
+                            className="btn-primary w-full flex items-center justify-center gap-3 relative overflow-hidden h-[56px]"
+                            disabled={loading}
+                        >
+                            <span className={`inline-flex items-center gap-3 transition-opacity duration-200 ${loading ? 'opacity-0' : 'opacity-100'}`}>
                                 進入草原 <span>✨</span>
-                            </>
-                        )}
-                    </button>
+                            </span>
+                            {loading && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                                </div>
+                            )}
+                        </button>
+                    </div>
                 </form>
 
                 <p className="text-[10px] text-center font-medium" style={{ color: "var(--text-muted)" }}>
