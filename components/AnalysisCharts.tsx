@@ -9,7 +9,7 @@ import {
     ChartData,
     ChartOptions,
 } from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels";
+import ChartDataLabels, { Context } from "chartjs-plugin-datalabels";
 
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
@@ -63,7 +63,7 @@ export default function AnalysisCharts({ data }: AnalysisChartsProps) {
             },
             // Segment 上的 % 標籤
             datalabels: {
-                display: (context) => {
+                display: (context: Context) => {
                     // 只顯示佔比 >= 5% 的項目，避免小塊擠在一起
                     const value = context.dataset.data[context.dataIndex] as number;
                     return (value / total) * 100 >= 5;
@@ -71,7 +71,7 @@ export default function AnalysisCharts({ data }: AnalysisChartsProps) {
                 color: "#fff",
                 font: {
                     size: 12,
-                    weight: "bold",
+                    weight: "bold" as const,
                     family: "'Noto Sans TC', sans-serif",
                 },
                 formatter: (value: number) => {
