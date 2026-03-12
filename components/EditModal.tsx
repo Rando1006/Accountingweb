@@ -138,8 +138,8 @@ export default function EditModal({ isOpen, data, onClose, onSave }: EditModalPr
                             <input
                                 type="number"
                                 className="expense-input !py-3 font-black !pl-12"
-                                value={formData.amount}
-                                onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })}
+                                value={formData.amount || ""}
+                                onChange={(e) => setFormData({ ...formData, amount: e.target.value === "" ? 0 : parseFloat(e.target.value) })}
                                 required
                             />
                         </div>
