@@ -15,17 +15,17 @@ interface ExpenseRow {
 
 type Period = "day" | "week" | "month" | "quarter" | "year";
 
+// 對齊全站系統配色（需用飽和版讓圖表清晰可辨）
 const CATEGORY_COLORS: Record<string, string> = {
-    飲食: "#85c242", // 蘋果綠
-    交通: "#6db5e2", // 天空藍
-    購物: "#f5a0c1", // 櫻花粉
-    娛樂: "#fbd66e", // 活力黃
-    醫療: "#ff8282", // 珊瑚紅
-    居家: "#4A90E2", // 靛藍 (新增/深色)
-    教育: "#9B51E0", // 紫色 (新增/深色)
-    通訊: "#F2994A", // 橙色 (新增/深色)
-    其他: "#a3d964",
+    飲食: "#f97316", // 暖橙（對應 pastel #FFE8D6 的飽和版）
+    交通: "#38bdf8", // 天藍（對應 pastel #E0F2FE）
+    購物: "#f472b6", // 玫瑰粉（對應 pastel #FCE7F3）
+    居家: "#4ade80", // 清草綠（對應 pastel #DCFCE7）
+    娛樂: "#a78bfa", // 薰衣草紫（對應 pastel #F3E8FF）
+    醫療: "#f87171", // 珊瑚紅（對應 pastel #FEE2E2）
+    其他: "#94a3b8", // 霧灰藍（對應 pastel #F3F4F6）
 };
+
 
 export default function AnalysisPage() {
     const [data, setData] = useState<ExpenseRow[]>([]);
