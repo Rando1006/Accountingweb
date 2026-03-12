@@ -44,14 +44,76 @@ export interface ExpenseFilter {
 
 const SPREADSHEET_ID = process.env.SPREADSHEET_ID!;
 
-// 輔助函式：動態獲取 指定使用者工作表 的 sheetId (用於維度操作 API)
-async function getSheetId(sheets: any, userId: string) {
+// ─── 記憶體快取 ────────────────────────────────────────────────────────────────
+// 快取全量資料，TTL 60 秒
+interface CacheEntry {
+    data: ExpenseRow[];
+    expiredAt: number;
+}
+const expenseCache = new Map<string, CacheEntry>();
+
+function getCached(userId: string): ExpenseRow[] | null {
+    const entry = expenseCache.get(userId);
+    if (!entry) return null;
+    if (Date.now() > entry.expiredAt) {
+        expenseCache.delete(userId);
+        return null;
+    }
+    return entry.data;
+}
+
+function setCache(userId: string, data: ExpenseRow[]) {
+    expenseCache.set(userId, { data, expiredAt: Date.now() + 60_000 });
+}
+
+function invalidateCache(userId: string) {
+    expenseCache.delete(userId);
+}
+
+// ─── sheetId 快取（sheetId 幾乎不變，可長時間快取）─────────────────────────────
+const sheetIdCache = new Map<string, number>();
+
+async function getSheetId(sheets: any, userId: string): Promise<number> {
+    const cached = sheetIdCache.get(userId);
+    if (cached !== undefined) return cached;
+
     const spreadsheet = await sheets.spreadsheets.get({
         spreadsheetId: SPREADSHEET_ID,
     });
     const sheet = spreadsheet.data.sheets.find((s: any) => s.properties.title === userId);
-    return sheet?.properties?.sheetId ?? 0;
+    const sheetId = sheet?.properties?.sheetId ?? 0;
+    sheetIdCache.set(userId, sheetId);
+    return sheetId;
 }
+
+// ─── 核心讀取：真正從 Sheets 撈全量並回寫快取 ──────────────────────────────────
+async function fetchAllFromSheets(userId: string): Promise<ExpenseRow[]> {
+    const auth = getAuth();
+    const sheets = google.sheets({ version: "v4", auth });
+
+    const res = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${userId}!A2:G`,
+    });
+
+    const rows = res.data.values;
+    if (!rows || rows.length === 0) return [];
+
+    const data: ExpenseRow[] = rows.map((row: any[]) => ({
+        date: row[0] || "",
+        item: row[1] || "",
+        amount: parseFloat(row[2]) || 0,
+        category: row[3] || "",
+        userId: row[4] || "",
+        id: row[5] || "",
+        paymentMethod: row[6] || "現金",
+    }));
+
+    setCache(userId, data);
+    return data;
+}
+
+// ─── 公開 API ─────────────────────────────────────────────────────────────────
 
 export async function appendExpense(data: ExpenseRow) {
     const ids = await appendExpenses([data], data.userId);
@@ -71,35 +133,19 @@ export async function appendExpenses(dataList: ExpenseRow[], userId: string) {
         spreadsheetId: SPREADSHEET_ID,
         range: `${userId}!A2`,
         valueInputOption: "USER_ENTERED",
-        requestBody: {
-            values: values,
-        },
+        requestBody: { values },
     });
-    return values.map(v => v[5]); // 回傳 IDs 陣列
+
+    // 新增後使快取失效，下次讀取時重新抓
+    invalidateCache(userId);
+    return values.map(v => v[5]);
 }
 
 export async function getExpenses(userId: string, limit: number = 30, filters: ExpenseFilter = {}): Promise<ExpenseRow[]> {
-    const auth = getAuth();
-    const sheets = google.sheets({ version: "v4", auth });
+    // 嘗試從快取取得全量資料
+    const allRows = getCached(userId) ?? await fetchAllFromSheets(userId);
 
-    const res = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${userId}!A2:G`,
-    });
-
-    const rows = res.data.values;
-    if (!rows || rows.length === 0) return [];
-
-    return rows
-        .map((row: any[]) => ({
-            date: row[0] || "",
-            item: row[1] || "",
-            amount: parseFloat(row[2]) || 0,
-            category: row[3] || "",
-            userId: row[4] || "",
-            id: row[5] || "",
-            paymentMethod: row[6] || "現金",
-        }))
+    return allRows
         .filter(entry => {
             const { keyword, startDate, endDate, category, paymentMethod } = filters;
 
@@ -142,6 +188,7 @@ export async function deleteExpense(id: string, userId: string) {
     const rowIndex = values.findIndex(row => row[0] === id);
     if (rowIndex === -1) throw new Error("找不到該筆紀錄");
 
+    // sheetId 現在從快取取得，免去重複 API 呼叫
     const sheetId = await getSheetId(sheets, userId);
 
     await sheets.spreadsheets.batchUpdate({
@@ -161,6 +208,9 @@ export async function deleteExpense(id: string, userId: string) {
             ],
         },
     });
+
+    // 刪除後使快取失效
+    invalidateCache(userId);
 }
 
 export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>, userId: string) {
@@ -179,9 +229,8 @@ export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>
     if (index === -1) throw new Error("找不到該筆紀錄");
 
     const rowIndex = index + 2;
-    const currentRow = rows[index]; // 取得目前該列的原始資料
+    const currentRow = rows[index];
 
-    // 重組：將新資料與舊資料合併，特別處理新增的 paymentMethod
     const newValues = [
         updatedData.date ?? currentRow[0],
         updatedData.item ?? currentRow[1],
@@ -196,9 +245,9 @@ export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>
         spreadsheetId: SPREADSHEET_ID,
         range: `${userId}!A${rowIndex}:G${rowIndex}`,
         valueInputOption: "USER_ENTERED",
-        requestBody: {
-            values: [newValues],
-        },
+        requestBody: { values: [newValues] },
     });
-}
 
+    // 更新後使快取失效
+    invalidateCache(userId);
+}

@@ -28,8 +28,10 @@ export async function GET(request: NextRequest) {
             paymentMethod
         };
 
-        // 直接從該 userId 的分頁獲取資料 (預設抓取 5000 筆供分頁過濾)
-        const expenses = await getExpenses(userId, 5000, filters);
+        // 透過快取機制撈取全量資料後過濾，再做分頁切片
+        // getExpenses 本身已整合記憶體快取（TTL 60s），重複請求幾乎 0ms
+        const maxRows = offset + limit; // 只需要 offset + limit 筆的資料
+        const expenses = await getExpenses(userId, maxRows, filters);
 
         // 執行分頁切片：從 offset 開始取 limit 筆
         const paginatedExpenses = expenses.slice(offset, offset + limit);
