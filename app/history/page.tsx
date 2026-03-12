@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Navigation from "@/components/Navigation";
 import EditModal from "@/components/EditModal";
 
@@ -75,14 +75,33 @@ function formatDateLabel(dateStr: string): string {
 }
 
 export default function HistoryPage() {
-    const [groups, setGroups] = useState<DayGroup[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-    const [userId, setUserId] = useState("default");
-    const [offset, setOffset] = useState(0);
-    const [hasMore, setHasMore] = useState(true);
     const [allData, setAllData] = useState<ExpenseRow[]>([]);
-    const LIMIT = 50;
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [hasMore, setHasMore] = useState(true);
+    const [offset, setOffset] = useState(0);
+    const [userId, setUserId] = useState<string>("");
+    const [editingItem, setEditingItem] = useState<ExpenseRow | null>(null);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+
+    // 使用 useMemo 自動計算分組，確保與 allData 永遠同步
+    const groups = useMemo(() => {
+        const map = new Map<string, ExpenseRow[]>();
+        allData.forEach((row) => {
+            if (!map.has(row.date)) map.set(row.date, []);
+            map.get(row.date)!.push(row);
+        });
+
+        const g: DayGroup[] = [];
+        map.forEach((items, date) => {
+            g.push({
+                date,
+                items,
+                total: items.reduce((s, i) => s + i.amount, 0),
+            });
+        });
+        return g.sort((a, b) => b.date.localeCompare(a.date));
+    }, [allData]);
 
     // 格式化日期範圍顯示
     const getDateRangeLabel = () => {
@@ -93,9 +112,7 @@ export default function HistoryPage() {
         return `顯示最近 ${allData.length} 筆（${start} - ${end}）`;
     };
 
-    // 編輯與刪除狀態
-    const [editingItem, setEditingItem] = useState<ExpenseRow | null>(null);
-    const [isEditOpen, setIsEditOpen] = useState(false);
+    const LIMIT = 50;
 
     const fetchData = async (isLoadMore = false, isForceRefresh = false) => {
         const savedId = localStorage.getItem("pocket_account_user_id") || "default";
@@ -120,24 +137,6 @@ export default function HistoryPage() {
             const combinedData = isLoadMore ? [...allData, ...newData] : newData;
             setAllData(combinedData);
             if (isLoadMore) setOffset(currentOffset);
-
-            // 分組邏輯
-            const map = new Map<string, ExpenseRow[]>();
-            combinedData.forEach((row) => {
-                if (!map.has(row.date)) map.set(row.date, []);
-                map.get(row.date)!.push(row);
-            });
-
-            const g: DayGroup[] = [];
-            map.forEach((items, date) => {
-                g.push({
-                    date,
-                    items,
-                    total: items.reduce((s, i) => s + i.amount, 0),
-                });
-            });
-            g.sort((a, b) => b.date.localeCompare(a.date));
-            setGroups(g);
         } catch {
             setError("無法載入記帳記錄");
         } finally {

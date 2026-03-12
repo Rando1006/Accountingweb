@@ -70,20 +70,19 @@ function invalidateCache(userId: string) {
     expenseCache.delete(userId);
 }
 
-// ─── sheetId 快取（sheetId 幾乎不變，可長時間快取）─────────────────────────────
-const sheetIdCache = new Map<string, number>();
-
+// ─── sheetId 查詢（移除快取，避免 Vercel 暖機實例快取到錯誤的 sheetId=0）────────
+// 刪除/更新頻率低，每次重新查詢正確 sheetId 完全可接受
 async function getSheetId(sheets: any, userId: string): Promise<number> {
-    const cached = sheetIdCache.get(userId);
-    if (cached !== undefined) return cached;
-
     const spreadsheet = await sheets.spreadsheets.get({
         spreadsheetId: SPREADSHEET_ID,
     });
     const sheet = spreadsheet.data.sheets.find((s: any) => s.properties.title === userId);
-    const sheetId = sheet?.properties?.sheetId ?? 0;
-    sheetIdCache.set(userId, sheetId);
-    return sheetId;
+    if (!sheet) {
+        // 找不到時拋出明確錯誤，不再 fallback 到 0（避免刪到錯誤的 Tab）
+        const allTitles = spreadsheet.data.sheets.map((s: any) => s.properties.title).join(", ");
+        throw new Error(`找不到 sheet tab "${userId}"，現有 tab：${allTitles}`);
+    }
+    return sheet.properties.sheetId;
 }
 
 // ─── 核心讀取：真正從 Sheets 撈全量並回寫快取 ──────────────────────────────────
@@ -229,19 +228,31 @@ export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>
     const auth = getAuth();
     const sheets = google.sheets({ version: "v4", auth });
 
+    // 1. 先定位行號（與 delete 相同邏輯，讀取 F2:F 最精準）
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${userId}!A2:G`,
+        range: `'${userId}'!F2:F`,
     });
 
-    const rows = res.data.values;
-    if (!rows) throw new Error("無資料");
+    const values = res.data.values;
+    if (!values) throw new Error("找不到資料表內容（F欄為空）");
 
-    const index = rows.findIndex((row) => row[5] === id);
-    if (index === -1) throw new Error("找不到該筆紀錄");
+    const dataRowIndex = values.findIndex(row => row[0] === id);
+    if (dataRowIndex === -1) {
+        throw new Error(`找不到 id="${id}" 的紀錄`);
+    }
 
-    const rowIndex = index + 2;
-    const currentRow = rows[index];
+    // Sheet Row 2 = index 0 -> rowIndex = 2
+    const rowIndex = dataRowIndex + 2;
+
+    // 2. 取得該行舊資料，確保 Partial 更新時不會遺失欄位
+    const fullRowRes = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `'${userId}'!A${rowIndex}:G${rowIndex}`,
+    });
+    
+    const currentRow = fullRowRes.data.values?.[0] || [];
+    console.log(`[updateExpense] 更新 id="${id}", rowIndex=${rowIndex}, 原資料:`, currentRow);
 
     const newValues = [
         updatedData.date ?? currentRow[0],
@@ -249,17 +260,19 @@ export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>
         updatedData.amount ?? currentRow[2],
         updatedData.category ?? currentRow[3],
         updatedData.userId ?? currentRow[4],
-        id,
+        id, // ID 不可變
         updatedData.paymentMethod ?? (currentRow[6] || "現金")
     ];
 
+    // 3. 執行回寫
     await sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${userId}!A${rowIndex}:G${rowIndex}`,
+        range: `'${userId}'!A${rowIndex}:G${rowIndex}`,
         valueInputOption: "USER_ENTERED",
         requestBody: { values: [newValues] },
     });
 
     // 更新後使快取失效
     invalidateCache(userId);
+    console.log(`[updateExpense] 成功更新 Row ${rowIndex}`);
 }
