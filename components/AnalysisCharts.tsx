@@ -225,7 +225,7 @@ export default function AnalysisCharts({ data }: AnalysisChartsProps) {
                 ref={scrollRef}
                 onScroll={handleScroll}
                 className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide w-full h-[300px]"
-                style={{ scrollbarWidth: "none", "-ms-overflow-style": "none" } as any}
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as any}
             >
                 {/* 1. 甜甜圈圖 */}
                 <div className="snap-center flex-shrink-0 w-full h-full flex items-center justify-center relative p-2">

@@ -177,18 +177,27 @@ export async function deleteExpense(id: string, userId: string) {
     const auth = getAuth();
     const sheets = google.sheets({ version: "v4", auth });
 
+    // 從 F2 開始讀取（跳過表頭），避免誤算 rowIndex
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${userId}!F:F`,
+        range: `${userId}!F2:F`,
     });
 
     const values = res.data.values;
-    if (!values) throw new Error("找不到資料表內容");
+    if (!values) throw new Error("找不到資料表內容（F欄為空）");
 
-    const rowIndex = values.findIndex(row => row[0] === id);
-    if (rowIndex === -1) throw new Error("找不到該筆紀錄");
+    // values[0] = 第 2 行（第一筆資料），rowIndex 對應 Sheets 行是 index + 2（+1 表頭, +1 因為 0-based）
+    const dataRowIndex = values.findIndex(row => row[0] === id);
+    if (dataRowIndex === -1) {
+        throw new Error(`找不到 id="${id}" 的紀錄（F欄共 ${values.length} 筆）`);
+    }
 
-    // sheetId 現在從快取取得，免去重複 API 呼叫
+    // Sheets 的刪除 startIndex 是 0-based 且包含表頭
+    // values[0] → Sheet row 2 → startIndex = 1（0=row1 表頭, 1=row2）
+    const startIndex = dataRowIndex + 1; // +1 for header row
+
+    console.log(`[deleteExpense] 刪除 id="${id}", dataRowIndex=${dataRowIndex}, startIndex=${startIndex}`);
+
     const sheetId = await getSheetId(sheets, userId);
 
     await sheets.spreadsheets.batchUpdate({
@@ -200,8 +209,8 @@ export async function deleteExpense(id: string, userId: string) {
                         range: {
                             sheetId: sheetId,
                             dimension: "ROWS",
-                            startIndex: rowIndex,
-                            endIndex: rowIndex + 1,
+                            startIndex: startIndex,
+                            endIndex: startIndex + 1,
                         },
                     },
                 },
@@ -211,6 +220,7 @@ export async function deleteExpense(id: string, userId: string) {
 
     // 刪除後使快取失效
     invalidateCache(userId);
+    console.log(`[deleteExpense] 成功刪除 row ${startIndex + 1}`);
 }
 
 export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>, userId: string) {
