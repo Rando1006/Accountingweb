@@ -185,11 +185,16 @@ export async function deleteExpense(id: string, userId: string) {
     });
 
     const values = res.data.values;
-    if (!values) throw new Error("找不到資料表內容（F欄為空）");
+    if (!values) throw new Error(`找不到資料表內容（F欄為空），UserId: [${userId}]`);
 
-    const dataRowIndex = values.findIndex(row => row[0] === id);
+    console.log(`[deleteExpense] 開始比對 ID. 目標: [${id}], 總筆數: ${values.length}, UserId: [${userId}]`);
+    if (values.length > 0) {
+        console.log(`[deleteExpense] F2 顯示第一筆 ID: [${values[0][0]}]`);
+    }
+
+    const dataRowIndex = values.findIndex(row => String(row[0]).trim() === String(id).trim());
     if (dataRowIndex === -1) {
-        throw new Error(`找不到 id="${id}" 的紀錄`);
+        throw new Error(`找不到 id="${id}" 的紀錄。請確認 Vercel Log 中的詳細 ID 比對資訊。`);
     }
 
     // Sheets 的刪除 startIndex 是 0-based 且包含表頭
@@ -234,11 +239,13 @@ export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>
     });
 
     const values = res.data.values;
-    if (!values) throw new Error("找不到資料表內容（F欄為空）");
+    if (!values) throw new Error(`找不到資料表內容（F欄為空），UserId: [${userId}]`);
 
-    const dataRowIndex = values.findIndex(row => row[0] === id);
+    console.log(`[updateExpense] 開始比對 ID. 目標: [${id}], 總筆數: ${values.length}, UserId: [${userId}]`);
+
+    const dataRowIndex = values.findIndex(row => String(row[0]).trim() === String(id).trim());
     if (dataRowIndex === -1) {
-        throw new Error(`找不到 id="${id}" 的紀錄`);
+        throw new Error(`找不到 id="${id}" 的紀錄。請確認 Vercel Log 中的詳細 ID 比對資訊。`);
     }
 
     // Sheet Row 2 = index 0 -> rowIndex = 2
