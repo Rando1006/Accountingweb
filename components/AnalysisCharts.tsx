@@ -14,7 +14,7 @@ import {
     LineElement,
     Filler,
 } from "chart.js";
-import ChartDataLabels from "chartjs-plugin-datalabels";
+import ChartDataLabels, { Context } from "chartjs-plugin-datalabels";
 
 ChartJS.register(
     ArcElement,
@@ -96,7 +96,7 @@ export default function AnalysisCharts({ data }: AnalysisChartsProps) {
                 },
             },
             datalabels: {
-                display: (context) => {
+                display: (context: Context) => {
                     const value = context.dataset.data[context.dataIndex] as number;
                     return (value / doughnutTotal) * 100 >= 8; // 門檻提高一點，避免太擠
                 },
@@ -143,7 +143,7 @@ export default function AnalysisCharts({ data }: AnalysisChartsProps) {
                 bodyColor: "var(--accent)",
                 bodyFont: { weight: "bold" },
                 callbacks: {
-                    label: (context) => ` $${context.parsed.y.toLocaleString()}`,
+                    label: (context) => ` $${(context.parsed as any).y?.toLocaleString() || 0}`,
                 },
             },
         },
