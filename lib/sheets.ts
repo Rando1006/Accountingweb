@@ -1,28 +1,4 @@
-import { google } from "googleapis";
-
-function getAuth() {
-    let raw = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
-    if (!raw) throw new Error("缺少 GOOGLE_SERVICE_ACCOUNT_JSON 環境變數");
-
-    try {
-        // 安全處理：移除 Vercel 或本地可能誤寫在全句首尾的單/雙引號
-        raw = raw.trim().replace(/^['"]|['"]$/g, '');
-
-        const credentials = JSON.parse(raw);
-
-        // 修復私鑰中的換行符號問題。
-        if (credentials.private_key && typeof credentials.private_key === 'string') {
-            credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
-        }
-
-        return new google.auth.GoogleAuth({
-            credentials,
-            scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-        });
-    } catch (error: any) {
-        throw new Error(`認證資料解析失敗: ${error.message}`);
-    }
-}
+import { getExpensesFromDB, appendExpensesToDB, deleteExpenseFromDB, updateExpenseInDB } from "./db";
 
 export interface ExpenseRow {
     date: string;
@@ -42,81 +18,6 @@ export interface ExpenseFilter {
     paymentMethod?: string;
 }
 
-const SPREADSHEET_ID = process.env.SPREADSHEET_ID!;
-
-// ─── 記憶體快取 ────────────────────────────────────────────────────────────────
-// 快取全量資料，TTL 60 秒
-interface CacheEntry {
-    data: ExpenseRow[];
-    expiredAt: number;
-}
-const expenseCache = new Map<string, CacheEntry>();
-
-function getCached(userId: string): ExpenseRow[] | null {
-    const entry = expenseCache.get(userId);
-    if (!entry) return null;
-    if (Date.now() > entry.expiredAt) {
-        expenseCache.delete(userId);
-        return null;
-    }
-    return entry.data;
-}
-
-function setCache(userId: string, data: ExpenseRow[]) {
-    expenseCache.set(userId, { data, expiredAt: Date.now() + 60_000 });
-}
-
-function invalidateCache(userId: string) {
-    expenseCache.delete(userId);
-}
-
-// ─── sheetId 查詢（移除快取，避免 Vercel 暖機實例快取到錯誤的 sheetId=0）────────
-// 使用不區分大小寫比對，並回傳真實的 Tab 名稱（realTitle），避免大小寫造成的查詢失敗
-async function getSheetInfo(sheets: any, userId: string): Promise<{ sheetId: number; realTitle: string }> {
-    const spreadsheet = await sheets.spreadsheets.get({
-        spreadsheetId: SPREADSHEET_ID,
-    });
-    // 不區分大小寫比對
-    const sheet = spreadsheet.data.sheets.find(
-        (s: any) => s.properties.title.toLowerCase() === userId.toLowerCase()
-    );
-    if (!sheet) {
-        const allTitles = spreadsheet.data.sheets.map((s: any) => s.properties.title).join(", ");
-        throw new Error(`找不到 sheet tab "${userId}"，現有 tab：${allTitles}`);
-    }
-    return {
-        sheetId: sheet.properties.sheetId,
-        realTitle: sheet.properties.title,
-    };
-}
-
-// ─── 核心讀取：真正從 Sheets 撈全量並回寫快取 ──────────────────────────────────
-async function fetchAllFromSheets(userId: string): Promise<ExpenseRow[]> {
-    const auth = getAuth();
-    const sheets = google.sheets({ version: "v4", auth });
-
-    const res = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${userId}!A2:G`,
-    });
-
-    const rows = res.data.values;
-    if (!rows || rows.length === 0) return [];
-
-    const data: ExpenseRow[] = rows.map((row: any[]) => ({
-        date: row[0] || "",
-        item: row[1] || "",
-        amount: parseFloat(row[2]) || 0,
-        category: row[3] || "",
-        userId: row[4] || "",
-        id: row[5] || "",
-        paymentMethod: row[6] || "現金",
-    }));
-
-    setCache(userId, data);
-    return data;
-}
-
 // ─── 公開 API ─────────────────────────────────────────────────────────────────
 
 export async function appendExpense(data: ExpenseRow) {
@@ -125,171 +26,26 @@ export async function appendExpense(data: ExpenseRow) {
 }
 
 export async function appendExpenses(dataList: ExpenseRow[], userId: string) {
-    const auth = getAuth();
-    const sheets = google.sheets({ version: "v4", auth });
-
-    const values = dataList.map(data => {
-        const id = `${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        return [data.date, data.item, data.amount, data.category, data.userId, id, data.paymentMethod || "現金"];
-    });
-
-    await sheets.spreadsheets.values.append({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${userId}!A2`,
-        valueInputOption: "USER_ENTERED",
-        requestBody: { values },
-    });
-
-    // 新增後使快取失效，下次讀取時重新抓
-    invalidateCache(userId);
-    return values.map(v => v[5]);
+    console.log(`[appendExpenses] 新增資料至資料庫, userId: ${userId}, 筆數: ${dataList.length}`);
+    return await appendExpensesToDB(dataList);
 }
 
-export async function getExpenses(userId: string, limit: number = 30, filters: ExpenseFilter = {}, forceRefresh: boolean = false): Promise<ExpenseRow[]> {
-    // forceRefresh=true 時跨過快取，直接抓最新資料（解決 Vercel 多實例快取失效問題）
-    const allRows = forceRefresh
-        ? await fetchAllFromSheets(userId)
-        : (getCached(userId) ?? await fetchAllFromSheets(userId));
-
-    return allRows
-        .filter(entry => {
-            const { keyword, startDate, endDate, category, paymentMethod } = filters;
-
-            if (startDate && entry.date < startDate) return false;
-            if (endDate && entry.date > endDate) return false;
-            if (category && category !== "全部" && entry.category !== category) return false;
-            if (paymentMethod && paymentMethod !== "全部") {
-                if (paymentMethod === "現金" && entry.paymentMethod !== "現金") return false;
-                if (paymentMethod === "信用卡/行動支付" && entry.paymentMethod === "現金") return false;
-            }
-
-            if (keyword) {
-                const keywordLower = keyword.toLowerCase();
-                const matchKeyword =
-                    entry.item.toLowerCase().includes(keywordLower) ||
-                    entry.category.toLowerCase().includes(keywordLower) ||
-                    (entry.paymentMethod?.toLowerCase() || "").includes(keywordLower);
-
-                if (!matchKeyword) return false;
-            }
-
-            return true;
-        })
-        .reverse()
-        .slice(0, limit);
+export async function getExpenses(userId: string, limit: number = 30, filters: ExpenseFilter = {}): Promise<ExpenseRow[]> {
+    console.log(`[getExpenses] 讀取資料庫, userId: ${userId}, limit: ${limit}`);
+    try {
+        return await getExpensesFromDB(userId, limit, filters);
+    } catch (err) {
+        console.error("[getExpenses] 資料庫讀取失敗:", err);
+        throw err;
+    }
 }
 
 export async function deleteExpense(id: string, userId: string) {
-    const auth = getAuth();
-    const sheets = google.sheets({ version: "v4", auth });
-
-    // 取得不區分大小寫的真實 Tab 名稱與 sheetId
-    const { sheetId, realTitle } = await getSheetInfo(sheets, userId);
-    console.log(`[deleteExpense] 解析 userId=[${userId}] -> realTitle=[${realTitle}], sheetId=${sheetId}`);
-
-    // 讀取 F2:F 精準定位行號
-    const res = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `'${realTitle}'!F2:F`,
-    });
-
-    const values = res.data.values;
-    if (!values) throw new Error(`找不到資料表內容（F欄為空），UserId: [${userId}]`);
-
-    console.log(`[deleteExpense] 開始比對 ID. 目標: [${id}], 總筆數: ${values.length}, UserId: [${userId}]`);
-    if (values.length > 0) {
-        console.log(`[deleteExpense] F2 顯示第一筆 ID: [${values[0][0]}]`);
-    }
-
-    const dataRowIndex = values.findIndex(row => String(row[0]).trim() === String(id).trim());
-    if (dataRowIndex === -1) {
-        throw new Error(`找不到 id="${id}" 的紀錄。請確認 Vercel Log 中的詳細 ID 比對資訊。`);
-    }
-
-    // Sheets 的刪除 startIndex 是 0-based 且包含表頭
-    // values[0] → Sheet row 2 → startIndex = 1（0=row1 表頭, 1=row2）
-    const startIndex = dataRowIndex + 1; // +1 for header row
-
-    console.log(`[deleteExpense] 刪除 id="${id}", dataRowIndex=${dataRowIndex}, startIndex=${startIndex}`);
-
-    await sheets.spreadsheets.batchUpdate({
-        spreadsheetId: SPREADSHEET_ID,
-        requestBody: {
-            requests: [
-                {
-                    deleteDimension: {
-                        range: {
-                            sheetId: sheetId,
-                            dimension: "ROWS",
-                            startIndex: startIndex,
-                            endIndex: startIndex + 1,
-                        },
-                    },
-                },
-            ],
-        },
-    });
-
-    // 刪除後使快取失效
-    invalidateCache(userId);
-    console.log(`[deleteExpense] 成功刪除 row ${startIndex + 1}`);
+    console.log(`[deleteExpense] 從資料庫刪除, id: ${id}, userId: ${userId}`);
+    await deleteExpenseFromDB(id, userId);
 }
 
 export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>, userId: string) {
-    const auth = getAuth();
-    const sheets = google.sheets({ version: "v4", auth });
-
-    // 取得不區分大小寫的真實 Tab 名稱與 sheetId
-    const { realTitle } = await getSheetInfo(sheets, userId);
-    console.log(`[updateExpense] 解析 userId=[${userId}] -> realTitle=[${realTitle}]`);
-
-    // 1. 先定位行號（與 delete 相同邏輯，讀取 F2:F 最精準）
-    const res = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `'${realTitle}'!F2:F`,
-    });
-
-    const values = res.data.values;
-    if (!values) throw new Error(`找不到資料表內容（F欄為空），UserId: [${userId}]`);
-
-    console.log(`[updateExpense] 開始比對 ID. 目標: [${id}], 總筆數: ${values.length}, UserId: [${userId}]`);
-
-    const dataRowIndex = values.findIndex(row => String(row[0]).trim() === String(id).trim());
-    if (dataRowIndex === -1) {
-        throw new Error(`找不到 id="${id}" 的紀錄。請確認 Vercel Log 中的詳細 ID 比對資訊。`);
-    }
-
-    // Sheet Row 2 = index 0 -> rowIndex = 2
-    const rowIndex = dataRowIndex + 2;
-
-    // 2. 取得該行舊資料，確保 Partial 更新時不會遺失欄位
-    const fullRowRes = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `'${realTitle}'!A${rowIndex}:G${rowIndex}`,
-    });
-    
-    const currentRow = fullRowRes.data.values?.[0] || [];
-    console.log(`[updateExpense] 更新 id="${id}", rowIndex=${rowIndex}, 原資料:`, currentRow);
-
-    const newValues = [
-        updatedData.date ?? currentRow[0],
-        updatedData.item ?? currentRow[1],
-        updatedData.amount ?? currentRow[2],
-        updatedData.category ?? currentRow[3],
-        updatedData.userId ?? currentRow[4],
-        id, // ID 不可變
-        updatedData.paymentMethod ?? (currentRow[6] || "現金")
-    ];
-
-    // 3. 執行回寫
-    await sheets.spreadsheets.values.update({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `'${realTitle}'!A${rowIndex}:G${rowIndex}`,
-        valueInputOption: "USER_ENTERED",
-        requestBody: { values: [newValues] },
-    });
-
-    // 更新後使快取失效
-    invalidateCache(userId);
-    console.log(`[updateExpense] 成功更新 Row ${rowIndex}`);
+    console.log(`[updateExpense] 從資料庫更新, id: ${id}, userId: ${userId}`);
+    await updateExpenseInDB(id, updatedData, userId);
 }
