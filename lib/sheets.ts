@@ -71,18 +71,23 @@ function invalidateCache(userId: string) {
 }
 
 // ─── sheetId 查詢（移除快取，避免 Vercel 暖機實例快取到錯誤的 sheetId=0）────────
-// 刪除/更新頻率低，每次重新查詢正確 sheetId 完全可接受
-async function getSheetId(sheets: any, userId: string): Promise<number> {
+// 使用不區分大小寫比對，並回傳真實的 Tab 名稱（realTitle），避免大小寫造成的查詢失敗
+async function getSheetInfo(sheets: any, userId: string): Promise<{ sheetId: number; realTitle: string }> {
     const spreadsheet = await sheets.spreadsheets.get({
         spreadsheetId: SPREADSHEET_ID,
     });
-    const sheet = spreadsheet.data.sheets.find((s: any) => s.properties.title === userId);
+    // 不區分大小寫比對
+    const sheet = spreadsheet.data.sheets.find(
+        (s: any) => s.properties.title.toLowerCase() === userId.toLowerCase()
+    );
     if (!sheet) {
-        // 找不到時拋出明確錯誤，不再 fallback 到 0（避免刪到錯誤的 Tab）
         const allTitles = spreadsheet.data.sheets.map((s: any) => s.properties.title).join(", ");
         throw new Error(`找不到 sheet tab "${userId}"，現有 tab：${allTitles}`);
     }
-    return sheet.properties.sheetId;
+    return {
+        sheetId: sheet.properties.sheetId,
+        realTitle: sheet.properties.title,
+    };
 }
 
 // ─── 核心讀取：真正從 Sheets 撈全量並回寫快取 ──────────────────────────────────
@@ -178,10 +183,14 @@ export async function deleteExpense(id: string, userId: string) {
     const auth = getAuth();
     const sheets = google.sheets({ version: "v4", auth });
 
-    // 從 F2 開始讀取（跳過表頭），避免誤算 rowIndex
+    // 取得不區分大小寫的真實 Tab 名稱與 sheetId
+    const { sheetId, realTitle } = await getSheetInfo(sheets, userId);
+    console.log(`[deleteExpense] 解析 userId=[${userId}] -> realTitle=[${realTitle}], sheetId=${sheetId}`);
+
+    // 讀取 F2:F 精準定位行號
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `'${userId}'!F2:F`,
+        range: `'${realTitle}'!F2:F`,
     });
 
     const values = res.data.values;
@@ -202,8 +211,6 @@ export async function deleteExpense(id: string, userId: string) {
     const startIndex = dataRowIndex + 1; // +1 for header row
 
     console.log(`[deleteExpense] 刪除 id="${id}", dataRowIndex=${dataRowIndex}, startIndex=${startIndex}`);
-
-    const sheetId = await getSheetId(sheets, userId);
 
     await sheets.spreadsheets.batchUpdate({
         spreadsheetId: SPREADSHEET_ID,
@@ -232,10 +239,14 @@ export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>
     const auth = getAuth();
     const sheets = google.sheets({ version: "v4", auth });
 
+    // 取得不區分大小寫的真實 Tab 名稱與 sheetId
+    const { realTitle } = await getSheetInfo(sheets, userId);
+    console.log(`[updateExpense] 解析 userId=[${userId}] -> realTitle=[${realTitle}]`);
+
     // 1. 先定位行號（與 delete 相同邏輯，讀取 F2:F 最精準）
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `'${userId}'!F2:F`,
+        range: `'${realTitle}'!F2:F`,
     });
 
     const values = res.data.values;
@@ -254,7 +265,7 @@ export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>
     // 2. 取得該行舊資料，確保 Partial 更新時不會遺失欄位
     const fullRowRes = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `'${userId}'!A${rowIndex}:G${rowIndex}`,
+        range: `'${realTitle}'!A${rowIndex}:G${rowIndex}`,
     });
     
     const currentRow = fullRowRes.data.values?.[0] || [];
@@ -273,7 +284,7 @@ export async function updateExpense(id: string, updatedData: Partial<ExpenseRow>
     // 3. 執行回寫
     await sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
-        range: `'${userId}'!A${rowIndex}:G${rowIndex}`,
+        range: `'${realTitle}'!A${rowIndex}:G${rowIndex}`,
         valueInputOption: "USER_ENTERED",
         requestBody: { values: [newValues] },
     });
