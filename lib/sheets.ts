@@ -181,16 +181,15 @@ export async function deleteExpense(id: string, userId: string) {
     // 從 F2 開始讀取（跳過表頭），避免誤算 rowIndex
     const res = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${userId}!F2:F`,
+        range: `'${userId}'!F2:F`,
     });
 
     const values = res.data.values;
     if (!values) throw new Error("找不到資料表內容（F欄為空）");
 
-    // values[0] = 第 2 行（第一筆資料），rowIndex 對應 Sheets 行是 index + 2（+1 表頭, +1 因為 0-based）
     const dataRowIndex = values.findIndex(row => row[0] === id);
     if (dataRowIndex === -1) {
-        throw new Error(`找不到 id="${id}" 的紀錄（F欄共 ${values.length} 筆）`);
+        throw new Error(`找不到 id="${id}" 的紀錄`);
     }
 
     // Sheets 的刪除 startIndex 是 0-based 且包含表頭
