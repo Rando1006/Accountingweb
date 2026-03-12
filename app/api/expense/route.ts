@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         };
 
         const maxRows = offset + limit;
-        const expenses = await getExpenses(userId, maxRows, filters, noCache);
+        const expenses = await getExpenses(userId, maxRows, filters);
 
         // 執行分頁切片：從 offset 開始取 limit 筆
         const paginatedExpenses = expenses.slice(offset, offset + limit);
