@@ -14,12 +14,12 @@ export async function GET(request: NextRequest) {
         const endDate = searchParams.get("endDate") || "";
         const category = searchParams.get("category") || "";
         const paymentMethod = searchParams.get("paymentMethod") || "";
+        const noCache = searchParams.get("noCache") === "true";
 
         if (!userId) {
             return NextResponse.json({ error: "Missing userId" }, { status: 400 });
         }
 
-        // 將參數包裝給 getExpenses 函數
         const filters = {
             keyword,
             startDate,
@@ -28,10 +28,8 @@ export async function GET(request: NextRequest) {
             paymentMethod
         };
 
-        // 透過快取機制撈取全量資料後過濾，再做分頁切片
-        // getExpenses 本身已整合記憶體快取（TTL 60s），重複請求幾乎 0ms
-        const maxRows = offset + limit; // 只需要 offset + limit 筆的資料
-        const expenses = await getExpenses(userId, maxRows, filters);
+        const maxRows = offset + limit;
+        const expenses = await getExpenses(userId, maxRows, filters, noCache);
 
         // 執行分頁切片：從 offset 開始取 limit 筆
         const paginatedExpenses = expenses.slice(offset, offset + limit);

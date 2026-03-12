@@ -97,7 +97,7 @@ export default function HistoryPage() {
     const [editingItem, setEditingItem] = useState<ExpenseRow | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
 
-    const fetchData = async (isLoadMore = false) => {
+    const fetchData = async (isLoadMore = false, isForceRefresh = false) => {
         const savedId = localStorage.getItem("pocket_account_user_id") || "default";
         setUserId(savedId);
 
@@ -108,7 +108,7 @@ export default function HistoryPage() {
         }
 
         try {
-            const res = await fetch(`/api/expense?userId=${savedId}&limit=${LIMIT}&offset=${currentOffset}`);
+            const res = await fetch(`/api/expense?userId=${savedId}&limit=${LIMIT}&offset=${currentOffset}${isForceRefresh ? "&noCache=true" : ""}`);
             const newData: ExpenseRow[] = await res.json();
 
             if (newData.length < LIMIT) {
@@ -155,7 +155,10 @@ export default function HistoryPage() {
         try {
             const res = await fetch(`/api/expense/${id}?userId=${userId}`, { method: "DELETE" });
             if (res.ok) {
-                fetchData(); // 重新整理
+                // 樂觀更新：先從前端 state 移除該筆，lUI 立即響應
+                setAllData(prev => prev.filter(item => item.id !== id));
+                // 再強制重拉從 Sheets 最新資料，繞過 Vercel 其他實例的舊快取
+                fetchData(false, true);
             } else {
                 alert("刪除失敗");
             }

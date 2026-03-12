@@ -141,9 +141,11 @@ export async function appendExpenses(dataList: ExpenseRow[], userId: string) {
     return values.map(v => v[5]);
 }
 
-export async function getExpenses(userId: string, limit: number = 30, filters: ExpenseFilter = {}): Promise<ExpenseRow[]> {
-    // 嘗試從快取取得全量資料
-    const allRows = getCached(userId) ?? await fetchAllFromSheets(userId);
+export async function getExpenses(userId: string, limit: number = 30, filters: ExpenseFilter = {}, forceRefresh: boolean = false): Promise<ExpenseRow[]> {
+    // forceRefresh=true 時跨過快取，直接抓最新資料（解決 Vercel 多實例快取失效問題）
+    const allRows = forceRefresh
+        ? await fetchAllFromSheets(userId)
+        : (getCached(userId) ?? await fetchAllFromSheets(userId));
 
     return allRows
         .filter(entry => {
