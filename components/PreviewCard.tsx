@@ -16,13 +16,23 @@ interface PreviewCardProps {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-    飲食: "🍜",
-    交通: "🚇",
-    購物: "🛍️",
-    居家: "🏠",
-    娛樂: "🎬",
-    醫療: "💊",
-    其他: "📌",
+    飲食: "/icons/food_icon.png",
+    交通: "/icons/transport_icon.png",
+    購物: "/icons/shopping_icon.png",
+    居家: "/icons/home_icon.png",
+    娛樂: "/icons/entertainment_icon.png",
+    醫療: "/icons/medical_icon.png",
+    其他: "/icons/other_icon.png",
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+    飲食: "#FFE8D6", // 桃子色
+    交通: "#E0F2FE", // 淺藍色
+    購物: "#FCE7F3", // 淺粉色
+    居家: "#DCFCE7", // 淺綠色
+    娛樂: "#F3E8FF", // 淺紫色
+    醫療: "#FEE2E2", // 淺紅色
+    其他: "#F3F4F6", // 淺灰色
 };
 
 export default function PreviewCard({
@@ -53,8 +63,17 @@ export default function PreviewCard({
             </p>
 
             {/* 金額主視覺 */}
-            <div className="text-center mb-6">
-                <div className="text-5xl mb-2">{icon}</div>
+            <div className="text-center mb-6 flex flex-col items-center">
+                <div 
+                    className="w-20 h-20 mb-3 flex items-center justify-center rounded-3xl flex-shrink-0 shadow-sm border-2 border-white/60 overflow-hidden"
+                    style={{ backgroundColor: CATEGORY_COLORS[data.category] || "#F3F4F6" }}
+                >
+                    <img 
+                        src={CATEGORY_ICONS[data.category] || "/icons/other_icon.png"} 
+                        alt={data.category}
+                        className="w-full h-full object-contain p-2"
+                    />
+                </div>
                 <div
                     className="text-4xl font-bold"
                     style={{ color: "var(--text-primary)" }}

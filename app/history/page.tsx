@@ -21,13 +21,23 @@ interface DayGroup {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-    飲食: "🍜",
-    交通: "🚇",
-    購物: "🛍️",
-    居家: "🏠",
-    娛樂: "🎬",
-    醫療: "💊",
-    其他: "📌",
+    飲食: "/icons/food_icon.png",
+    交通: "/icons/transport_icon.png",
+    購物: "/icons/shopping_icon.png",
+    居家: "/icons/home_icon.png",
+    娛樂: "/icons/entertainment_icon.png",
+    醫療: "/icons/medical_icon.png",
+    其他: "/icons/other_icon.png",
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+    飲食: "#FFE8D6", // 桃子色
+    交通: "#E0F2FE", // 淺藍色
+    購物: "#FCE7F3", // 淺粉色
+    居家: "#DCFCE7", // 淺綠色
+    娛樂: "#F3E8FF", // 淺紫色
+    醫療: "#FEE2E2", // 淺紅色
+    其他: "#F3F4F6", // 淺灰色
 };
 
 function formatDateLabel(dateStr: string): string {
@@ -255,8 +265,15 @@ export default function HistoryPage() {
                                             {/* 主要內容區 (滑動前看到的範圍) */}
                                             <div className="w-full flex-shrink-0 snap-center py-4 bg-white/50">
                                                 <div className="flex items-center justify-between w-[94%] max-w-[400px] mx-auto gap-3">
-                                                    <div className="text-3xl flex-shrink-0 mr-1 opacity-90 drop-shadow-sm">
-                                                        {CATEGORY_ICONS[item.category] ?? "📌"}
+                                                    <div 
+                                                        className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl flex-shrink-0 mr-2 sm:mr-3 shadow-sm border border-white/60 overflow-hidden"
+                                                        style={{ backgroundColor: CATEGORY_COLORS[item.category] || "#F3F4F6" }}
+                                                    >
+                                                        <img 
+                                                            src={CATEGORY_ICONS[item.category] || "/icons/other_icon.png"} 
+                                                            alt={item.category}
+                                                            className="w-full h-full object-contain p-1"
+                                                        />
                                                     </div>
                                                     <div className="flex-1 min-w-0 overflow-hidden">
                                                         <p className="text-[1.05rem] font-semibold truncate mb-1" style={{ color: "var(--text-primary)" }}>
