@@ -26,7 +26,6 @@ const CATEGORY_COLORS: Record<string, string> = {
     其他: "#94a3b8", // 霧灰藍（對應 pastel #F3F4F6）
 };
 
-
 export default function AnalysisPage() {
     const [data, setData] = useState<ExpenseRow[]>([]);
     const [loading, setLoading] = useState(true);
@@ -118,31 +117,6 @@ export default function AnalysisPage() {
         });
     }, [data, period, dateOffset]);
 
-    const chartData = useMemo(() => {
-        const stats: Record<string, number> = {};
-        filteredData.forEach((item) => {
-            stats[item.category] = (stats[item.category] || 0) + item.amount;
-        });
-
-        const rawLabels = Object.keys(stats);
-        // 按金額由大到小排序
-        const labels = rawLabels.sort((a, b) => stats[b] - stats[a]);
-        const amounts = labels.map(l => stats[l]);
-        const backgroundColors = labels.map((l) => CATEGORY_COLORS[l] || `hsl(${Math.random() * 360}, 70%, 60%)`);
-
-        return {
-            labels,
-            datasets: [
-                {
-                    data: amounts,
-                    backgroundColor: backgroundColors,
-                    borderColor: backgroundColors.map(() => "#ffffff"),
-                    borderWidth: 4,
-                },
-            ],
-        };
-    }, [filteredData]);
-
     const totalAmount = useMemo(() => {
         return filteredData.reduce((sum, item) => sum + item.amount, 0);
     }, [filteredData]);
@@ -185,6 +159,103 @@ export default function AnalysisPage() {
         }
         return "";
     }, [period, dateOffset]);
+
+    const chartData = useMemo(() => {
+        // 1. 分類占比統計 (Doughnut)
+        const stats: Record<string, number> = {};
+        filteredData.forEach((item) => {
+            stats[item.category] = (stats[item.category] || 0) + item.amount;
+        });
+
+        const rawLabels = Object.keys(stats);
+        const categoryLabels = rawLabels.sort((a, b) => stats[b] - stats[a]);
+        const categoryAmounts = categoryLabels.map(l => stats[l]);
+        const backgroundColors = categoryLabels.map((l) => CATEGORY_COLORS[l] || `hsl(${Math.random() * 360}, 70%, 60%)`);
+
+        const doughnutData = {
+            labels: categoryLabels,
+            datasets: [
+                {
+                    data: categoryAmounts,
+                    backgroundColor: backgroundColors,
+                    borderColor: backgroundColors.map(() => "#ffffff"),
+                    borderWidth: 4,
+                },
+            ],
+        };
+
+        // 2. 消費趨勢統計 (Line Chart)
+        const trendStats: Record<string, number> = {};
+        
+        // 根據週期決定 X 軸標籤
+        let trendLabels: string[] = [];
+        const now = new Date();
+        const baseDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        if (period === "day") {
+            trendLabels = [periodLabelText];
+            trendStats[periodLabelText] = totalAmount;
+        } else if (period === "week") {
+            const startOfWeek = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate() - baseDate.getDay() + (dateOffset * 7));
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(startOfWeek);
+                d.setDate(startOfWeek.getDate() + i);
+                const label = `${d.getMonth() + 1}/${d.getDate()}`;
+                trendLabels.push(label);
+                trendStats[label] = 0;
+            }
+        } else if (period === "month") {
+            const targetMonth = new Date(baseDate.getFullYear(), baseDate.getMonth() + dateOffset, 1);
+            const daysInMonth = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
+            for (let i = 1; i <= daysInMonth; i++) {
+                const label = `${i}日`;
+                trendLabels.push(label);
+                trendStats[label] = 0;
+            }
+        } else if (period === "year" || period === "quarter") {
+             const startMonth = period === "year" ? 0 : Math.floor(now.getMonth() / 3) * 3 + (dateOffset * 3);
+             const monthCount = period === "year" ? 12 : 3;
+             for (let i = 0; i < monthCount; i++) {
+                 const m = (startMonth + i + 12) % 12;
+                 const label = `${m + 1}月`;
+                 trendLabels.push(label);
+                 trendStats[label] = 0;
+             }
+        }
+
+        // 填充趨勢數據
+        filteredData.forEach(item => {
+            const d = new Date(item.date + "T00:00:00");
+            let key = "";
+            if (period === "week") key = `${d.getMonth() + 1}/${d.getDate()}`;
+            else if (period === "month") key = `${d.getDate()}日`;
+            else if (period === "year" || period === "quarter") key = `${d.getMonth() + 1}月`;
+            else key = periodLabelText;
+
+            if (trendStats[key] !== undefined) {
+                trendStats[key] += item.amount;
+            }
+        });
+
+        const lineData = {
+            labels: trendLabels,
+            datasets: [
+                {
+                    label: "支出金額",
+                    data: trendLabels.map(l => trendStats[l]),
+                    borderColor: "#f97316",
+                    backgroundColor: "rgba(249, 115, 22, 0.1)",
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#fff",
+                    pointBorderWidth: 2,
+                },
+            ],
+        };
+
+        return { doughnutData, lineData };
+    }, [filteredData, period, dateOffset, periodLabelText, totalAmount]);
 
     const handleAIAnalysis = async () => {
         if (filteredData.length === 0) {
@@ -301,7 +372,7 @@ export default function AnalysisPage() {
                         <div className="glass-card mx-2 p-6" style={{ borderBottomWidth: "6px" }}>
                             <h3 className="text-sm font-black mb-6 flex items-center gap-3 px-1" style={{ color: "var(--text-muted)" }}>
                                 <span className="w-2 h-5 bg-[var(--status-pink)] rounded-full flex-shrink-0" />
-                                各類別占比
+                                數據分析
                             </h3>
                             <div className="mb-4">
                                 <AnalysisCharts data={chartData} />
@@ -310,10 +381,10 @@ export default function AnalysisPage() {
 
                         {/* 分類清單 (List-view) */}
                         <div className="mx-2 bg-white/60 backdrop-blur-md rounded-[1.5rem] border border-[var(--border)] shadow-sm overflow-hidden flex flex-col">
-                            {chartData.labels.map((label, idx) => {
-                                const amount = chartData.datasets[0].data[idx];
+                            {chartData.doughnutData.labels.map((label: string, idx: number) => {
+                                const amount = chartData.doughnutData.datasets[0].data[idx];
                                 const percentage = ((amount / totalAmount) * 100).toFixed(1);
-                                const isLast = idx === chartData.labels.length - 1;
+                                const isLast = idx === chartData.doughnutData.labels.length - 1;
 
                                 return (
                                     <div 
