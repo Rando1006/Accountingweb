@@ -177,7 +177,11 @@ export default function HistoryPage() {
                 body: JSON.stringify(updated),
             });
             if (res.ok) {
-                fetchData();
+                // 樂觀更新：立即更新本地 state
+                setAllData(prev => prev.map(item => item.id === updated.id ? { ...item, ...updated } : item));
+                // 強制重拉最新資料
+                fetchData(false, true);
+                setIsEditOpen(false);
             } else {
                 throw new Error("更新失敗");
             }
