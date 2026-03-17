@@ -16,7 +16,7 @@ export interface ParseResult {
   expenses: ParsedExpense[];
 }
 
-const CATEGORIES = ["飲食", "交通", "購物", "居家", "娛樂", "醫療", "其他"];
+const CATEGORIES = ["飲食", "交通", "購物", "居家", "娛樂", "醫療", "治裝", "其他"];
 
 export async function parseExpenseText(
   text: string,
@@ -39,10 +39,11 @@ export async function parseExpenseText(
 類別定義（必須嚴格遵守）：
 - 飲食：所有食物、飲料、餐點。包含早餐、午餐、晚餐、下午茶、點心、消夜、咖啡、手搖飲、食材原料、餐廳。
 - 交通：捷運、公車、計程車、Uber、加油、停車、火車、高鐵、共享汽機車。
-- 購物：日常生活用品、衣服、雜物、電器、美妝藥妝（非藥品）、便利超商商品。
+- 購物：日常生活用品、雜物、電器、便利超商商品。
 - 居家：房租、水電燃氣費、網路費、房屋修繕、家具搬運、清潔用品、室內盆栽等居家相關雜支。
 - 娛樂：電影、遊戲、門票、課金、訂閱服務（Netflix、Spotify等）、運動健身。
 - 醫療：掛號費、門診、藥品、復健。
+- 治裝：美甲、頭髮（美髮/剪髮）、美妝（彩妝）、保養、衣服。
 - 其他：不屬於上述範圍的支出。
 
 規則：
@@ -80,8 +81,16 @@ export async function parseExpenseText(
     parsed = { expenses: [] };
   }
 
-  // 驗證分類是否在清單內
+  // 驗證與強制分類邏輯
+  const APPAREL_KEYWORDS = ['美甲', '頭髮', '美妝', '保養', '衣服'];
+  
   parsed.expenses.forEach(expense => {
+    // 強制分類邏輯：若項目包含特定關鍵字，歸類到治裝
+    const shouldBeApparel = APPAREL_KEYWORDS.some(keyword => expense.item.includes(keyword));
+    if (shouldBeApparel) {
+      expense.category = "治裝";
+    }
+
     if (!CATEGORIES.includes(expense.category)) {
       expense.category = "其他";
     }

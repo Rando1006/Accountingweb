@@ -27,6 +27,7 @@ const CATEGORIES = [
     { label: "居家", icon: "/icons/home_icon.png" },
     { label: "娛樂", icon: "/icons/entertainment_icon.png" },
     { label: "醫療", icon: "/icons/medical_icon.png" },
+    { label: "治裝", icon: "/icons/apparel_icon.png" },
     { label: "其他", icon: "/icons/other_icon.png" },
 ];
 
@@ -38,6 +39,7 @@ const CATEGORY_COLORS: Record<string, string> = {
     居家: "#DCFCE7",
     娛樂: "#F3E8FF",
     醫療: "#FEE2E2",
+    治裝: "#F5F3FF",
     其他: "#F3F4F6",
 };
 

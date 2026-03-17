@@ -51,6 +51,7 @@ const SYSTEM_COLORS: Record<string, string> = {
     居家: "#4ade80",
     娛樂: "#a78bfa",
     醫療: "#f87171",
+    治裝: "#8b5cf6",
     其他: "#94a3b8",
 };
 

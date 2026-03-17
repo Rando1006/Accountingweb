@@ -1,6 +1,7 @@
 import { sql } from "@vercel/postgres";
 import { google } from "googleapis";
 import * as dotenv from "dotenv";
+import * as crypto from "crypto";
 
 // 加載環境變數
 dotenv.config({ path: ".env.local" });
@@ -19,18 +20,28 @@ function getAuth() {
     });
 }
 
+function generateStableId(row: any[], userId: string): string {
+    // 使用內容雜湊確保 ID 唯一且穩定
+    // 即使重複執行遷移，相同內容也不會產生多筆資料
+    const content = `${row[0]}_${row[1]}_${row[2]}_${row[3]}_${userId.toLowerCase()}`;
+    return crypto.createHash("md5").update(content).digest("hex");
+}
+
 async function migrate() {
-    console.log("🚀 開始搬家流程：Google Sheets -> Vercel Postgres");
+    console.log("🚀 開始精準搬家流程 (穩定 ID 模式)");
 
     if (!SPREADSHEET_ID) {
         console.error("❌ 錯誤：缺少 SPREADSHEET_ID 環境變數");
         return;
     }
 
+    // ─── 第一步：清空舊資料 (清洗環境) ──────────────────────────────────────────
+    console.log("🧹 正在清空資料庫舊資料...");
+    await sql`TRUNCATE TABLE expenses`;
+
     const auth = getAuth();
     const sheets = google.sheets({ version: "v4", auth });
 
-    // 1. 取得所有 Sheet Tabs (每個 Tab 是一個 userId)
     const spreadsheet = await sheets.spreadsheets.get({
         spreadsheetId: SPREADSHEET_ID,
     });
@@ -43,7 +54,6 @@ async function migrate() {
     for (const userId of sheetTitles) {
         console.log(`\n正在處理使用者: [${userId}]...`);
 
-        // 2. 抓取該使用者的所有資料
         const res = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
             range: `${userId}!A2:G`,
@@ -55,41 +65,36 @@ async function migrate() {
             continue;
         }
 
-        console.log(` -> 抓到 ${rows.length} 筆資料，準備寫入資料庫...`);
+        console.log(` -> 抓到 ${rows.length} 筆資料，準備寫入...`);
 
-        // 3. 批量寫入 Postgres
         for (const row of rows) {
             const date = row[0];
             const item = row[1];
             const amount = parseFloat(row[2]) || 0;
             const category = row[3];
-            const uId = row[4]; // 實際資料內的 userId
-            const id = row[5];
             const paymentMethod = row[6] || "現金";
+            
+            if (!date || !item) continue;
 
-            if (!id || !date) continue;
+            const normalizedUserId = userId.toLowerCase();
+            const id = generateStableId(row, userId);
 
             try {
-                // 使用 ON CONFLICT 避免重複執行時報錯，並更新最新內容 (Upsert)
                 await sql`
                     INSERT INTO expenses (id, date, item, amount, category, user_id, payment_method)
-                    VALUES (${id}, ${date}, ${item}, ${amount}, ${category}, ${userId}, ${paymentMethod})
-                    ON CONFLICT (id) DO UPDATE SET
-                        date = EXCLUDED.date,
-                        item = EXCLUDED.item,
-                        amount = EXCLUDED.amount,
-                        category = EXCLUDED.category,
-                        user_id = EXCLUDED.user_id,
-                        payment_method = EXCLUDED.payment_method;
+                    VALUES (${id}, ${date}, ${item}, ${amount}, ${category}, ${normalizedUserId}, ${paymentMethod})
                 `;
                 totalMigrated++;
             } catch (err: any) {
-                console.error(` ❌ 寫入失敗 (ID: ${id}):`, err.message);
+                // 忽略真正的內容重複（靜默去重）
+                if (!err.message.includes("unique constraint")) {
+                    console.error(` ❌ 寫入失敗:`, err.message);
+                }
             }
         }
     }
 
-    console.log(`\n✅ 搬家完成！共遷移了 ${totalMigrated} 筆資料。`);
+    console.log(`\n✅ 搬家完成！共遷移了 ${totalMigrated} 筆不重複資料。`);
 }
 
 migrate().catch(console.error);
