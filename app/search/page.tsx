@@ -172,7 +172,7 @@ export default function SearchPage() {
                     <div className="glass-card p-5 rounded-[24px] space-y-5 shadow-sm mb-6">
                         <div className="flex gap-4">
                             <div className="flex-1">
-                                <label className="block text-[12px] font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--text-muted)" }}>開始日期</label>
+                                <label className="block text-sm font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--text-muted)" }}>開始日期</label>
                                 <input
                                     type="date"
                                     value={startDate}
@@ -182,7 +182,7 @@ export default function SearchPage() {
                                 />
                             </div>
                             <div className="flex-1">
-                                <label className="block text-[12px] font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--text-muted)" }}>結束日期</label>
+                                <label className="block text-sm font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--text-muted)" }}>結束日期</label>
                                 <input
                                     type="date"
                                     value={endDate}
@@ -195,7 +195,7 @@ export default function SearchPage() {
 
                         <div className="flex gap-4">
                             <div className="flex-1">
-                                <label className="block text-[12px] font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--text-muted)" }}>分類</label>
+                                <label className="block text-sm font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--text-muted)" }}>分類</label>
                                 <div className="relative">
                                     <select
                                         value={category}
@@ -212,7 +212,7 @@ export default function SearchPage() {
                                 </div>
                             </div>
                             <div className="flex-1">
-                                <label className="block text-[12px] font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--text-muted)" }}>付款方式</label>
+                                <label className="block text-sm font-black uppercase tracking-widest pl-1 mb-2" style={{ color: "var(--text-muted)" }}>付款方式</label>
                                 <div className="relative">
                                     <select
                                         value={paymentMethod}
@@ -257,14 +257,14 @@ export default function SearchPage() {
                     ) : (
                         <div className="space-y-3 animate-soft-in">
                             <div className="glass-card py-8 px-5 rounded-[24px] flex flex-col items-center justify-center text-center border-2 border-dashed border-[var(--accent)]/30 bg-white/40 mb-6">
-                                <span className="text-[11px] font-black uppercase tracking-[0.2em] opacity-60 mb-2" style={{ color: "var(--text-muted)" }}>
+                                <span className="text-sm font-black uppercase tracking-[0.2em] opacity-60 mb-2" style={{ color: "var(--text-muted)" }}>
                                     🎯 符合條件共 {results.length} 筆
                                 </span>
-                                <span className="text-lg font-black tracking-widest mb-3" style={{ color: "var(--text-primary)" }}>
+                                <span className="text-xl font-black tracking-widest mb-3" style={{ color: "var(--text-primary)" }}>
                                     搜尋結果總花費
                                 </span>
                                 <div className="text-5xl font-black tracking-tighter" style={{ color: "var(--text-primary)" }}>
-                                    <span className="text-2xl mr-1 opacity-50">$</span>{totalAmount.toLocaleString()}
+                                    <span className="text-3xl mr-1 opacity-50">$</span>{totalAmount.toLocaleString()}
                                 </div>
                             </div>
 
@@ -276,7 +276,7 @@ export default function SearchPage() {
                                             className={`flex overflow-hidden ${idx < results.length - 1 ? "border-b-[1.5px] border-dashed border-[#f0f0f0]" : ""}`}
                                         >
                                             <div 
-                                                className="w-full py-4 px-4 sm:px-6 bg-white/50 cursor-pointer hover:bg-white/80 transition-colors"
+                                                className="w-full py-6 px-4 sm:px-6 bg-white/50 cursor-pointer hover:bg-white/80 transition-colors"
                                                 onClick={() => setEditData(item)}
                                             >
                                                 <div className="flex items-start justify-between w-[92%] max-w-[380px] mx-auto gap-3">
@@ -294,17 +294,17 @@ export default function SearchPage() {
                                                     
                                                     {/* 中間文字區塊：允許被截斷與換行 */}
                                                     <div className="flex-1 min-w-0 overflow-hidden">
-                                                        <p className="text-[1.05rem] font-semibold truncate mb-1" style={{ color: "var(--text-primary)" }}>
+                                                        <p className="text-lg font-semibold truncate mb-1" style={{ color: "var(--text-primary)" }}>
                                                             {item.item}
                                                         </p>
                                                         <div className="flex items-center gap-1.5 pt-0.5 overflow-hidden">
-                                                            <span className={`badge-${item.category} px-2.5 py-0.5 rounded-full text-[10px] font-black flex-shrink-0`}>
+                                                            <span className={`badge-${item.category} px-3 py-1 rounded-full text-sm font-black flex-shrink-0`}>
                                                                 {item.category}
                                                             </span>
-                                                            <span className="text-[10px] bg-[var(--bg-soft)] px-2 py-0.5 rounded-full font-black opacity-80 flex-shrink-0 truncate" style={{ color: "var(--text-primary)" }}>
+                                                            <span className="text-sm bg-[var(--bg-soft)] px-3 py-1 rounded-full font-black opacity-80 flex-shrink-0 truncate" style={{ color: "var(--text-primary)" }}>
                                                                 {item.paymentMethod && item.paymentMethod !== "現金" ? `💳 ${item.paymentMethod}` : "💵 現金"}
                                                             </span>
-                                                            <span className="text-[10px] font-bold opacity-40 flex-shrink-0" style={{ color: "var(--text-primary)" }}>
+                                                            <span className="text-xs font-bold opacity-40 flex-shrink-0" style={{ color: "var(--text-primary)" }}>
                                                                 {item.date.replace(/-/g, "/")}
                                                             </span>
                                                         </div>
@@ -312,7 +312,7 @@ export default function SearchPage() {
 
                                                     {/* 右側金額 (獨立區塊不動如山) */}
                                                     <div className="text-xl font-black flex-shrink-0 text-right tracking-tighter pt-1" style={{ color: "var(--text-primary)" }}>
-                                                        <span className="text-sm opacity-50 mr-0.5">$</span>{item.amount.toLocaleString()}
+                                                        <span className="text-base opacity-50 mr-0.5">$</span>{item.amount.toLocaleString()}
                                                     </div>
                                                 </div>
                                             </div>
