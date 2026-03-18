@@ -217,7 +217,7 @@ export default function HistoryPage() {
 
                     {!loading && !error && groups.length > 0 && (
                         <div className="flex flex-col items-center justify-center py-8 mt-2 bg-transparent border-t-2 border-b-2 border-dashed border-[var(--border)]">
-                            <span className="text-[11px] font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>
+                            <span className="text-sm font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>
                                 － 累積總花費 －
                             </span>
                             <span className="text-5xl font-black tracking-tighter" style={{ color: "var(--text-primary)" }}>
@@ -226,7 +226,7 @@ export default function HistoryPage() {
                         </div>
                     )}
                     {allData.length > 0 && (
-                        <p className="text-[10px] font-black text-center mt-4 tracking-tighter opacity-50 uppercase" style={{ color: "var(--text-muted)" }}>
+                        <p className="text-sm font-black text-center mt-4 tracking-tighter opacity-50 uppercase" style={{ color: "var(--text-muted)" }}>
                             {getDateRangeLabel()}
                         </p>
                     )}
@@ -249,14 +249,14 @@ export default function HistoryPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-12 animate-soft-in">
+                    <div className="space-y-14 animate-soft-in">
                         {groups.map((group) => (
                             <div key={group.date}>
-                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto mb-3">
-                                    <span className="text-xs font-bold uppercase tracking-widest text-[#9ca3af]">
+                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto mb-4">
+                                    <span className="text-base font-bold uppercase tracking-widest text-[#9ca3af]">
                                         {formatDateLabel(group.date)}
                                     </span>
-                                    <span className="text-[13px] font-black tracking-tight text-[#9ca3af]">
+                                    <span className="text-lg font-black tracking-tight text-[#9ca3af]">
                                         ${group.total.toLocaleString()}
                                     </span>
                                 </div>
@@ -271,7 +271,7 @@ export default function HistoryPage() {
                                             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                                         >
                                             {/* 主要內容區 (滑動前看到的範圍) */}
-                                            <div className="w-full flex-shrink-0 snap-center py-4 bg-white/50">
+                                            <div className="w-full flex-shrink-0 snap-center py-5 bg-white/50">
                                                 <div className="flex items-center justify-between w-[94%] max-w-[400px] mx-auto gap-3">
                                                     <div 
                                                         className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl flex-shrink-0 mr-2 sm:mr-3 shadow-sm border border-white/60 overflow-hidden"
@@ -284,20 +284,20 @@ export default function HistoryPage() {
                                                         />
                                                     </div>
                                                     <div className="flex-1 min-w-0 overflow-hidden">
-                                                        <p className="text-[1.05rem] font-semibold truncate mb-1" style={{ color: "var(--text-primary)" }}>
+                                                        <p className="text-lg font-semibold truncate mb-1" style={{ color: "var(--text-primary)" }}>
                                                             {item.item}
                                                         </p>
                                                         <div className="flex items-center gap-1.5 pt-0.5">
-                                                            <span className={`badge-${item.category} px-2.5 py-0.5 rounded-full text-[10px] font-black`}>
+                                                            <span className={`badge-${item.category} px-3 py-1 rounded-full text-sm font-black`}>
                                                                 {item.category}
                                                             </span>
-                                                            <span className="text-[10px] bg-[var(--bg-soft)] px-2 py-0.5 rounded-full font-black opacity-80" style={{ color: "var(--text-primary)" }}>
+                                                            <span className="text-sm bg-[var(--bg-soft)] px-3 py-1 rounded-full font-black opacity-80" style={{ color: "var(--text-primary)" }}>
                                                                 {item.paymentMethod && item.paymentMethod !== "現金" ? `💳 ${item.paymentMethod}` : "💵 現金"}
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    <div className="font-sans text-xl font-black flex-shrink-0 text-right tracking-tighter text-[#333]">
-                                                        <span className="text-sm opacity-50 mr-0.5">$</span>{item.amount.toLocaleString()}
+                                                    <div className="font-sans text-2xl font-black flex-shrink-0 text-right tracking-tighter text-[#333]">
+                                                        <span className="text-base opacity-50 mr-0.5">$</span>{item.amount.toLocaleString()}
                                                     </div>
                                                 </div>
                                             </div>
