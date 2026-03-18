@@ -1,8 +1,15 @@
+export const runtime = 'edge';
+
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
+});
+
+const groq = new OpenAI({
+    apiKey: process.env.GROQ_API_KEY,
+    baseURL: "https://api.groq.com/openai/v1",
 });
 
 export async function POST(request: NextRequest) {
@@ -35,8 +42,11 @@ export async function POST(request: NextRequest) {
 ${summary}
 `;
 
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+        const client = process.env.GROQ_API_KEY ? groq : openai;
+        const model = process.env.GROQ_API_KEY ? "llama-3.3-70b-versatile" : "gpt-4o-mini";
+
+        const completion = await client.chat.completions.create({
+            model: model,
             messages: [
                 { role: "system", content: "你是一位充滿熱情且專業的皮克敏理財導師，專長於行為金融學與極簡生活。" },
                 { role: "user", content: prompt },
