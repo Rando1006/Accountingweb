@@ -2,6 +2,7 @@ export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from "next/server";
 import { parseExpenseText } from "@/lib/openai";
+import { parseWithGroq } from "@/lib/groq";
 
 export async function POST(request: NextRequest) {
     try {
@@ -19,6 +20,12 @@ export async function POST(request: NextRequest) {
             month: "2-digit",
             day: "2-digit",
         }).replace(/\//g, "-");
+
+        // 優先使用 Groq 高速引擎，若無 Key 則使用 OpenAI
+        if (process.env.GROQ_API_KEY) {
+            const result = await parseWithGroq(text, today);
+            return NextResponse.json(result);
+        }
 
         const result = await parseExpenseText(text, today);
         return NextResponse.json(result);
