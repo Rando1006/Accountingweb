@@ -134,24 +134,10 @@ export default function Home() {
               onChange={(e) => setInputText(e.target.value)}
               placeholder="一次記多筆也可以喔！&#10;例：昨天早餐50 捷運20 晚餐50"
               className="w-full min-h-[120px] bg-white/70 border border-transparent focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent)]/10 rounded-2xl outline-none text-lg font-bold placeholder:opacity-40 resize-none transition-all shadow-inner"
-              style={{ color: "var(--text-primary)", padding: "24px", lineHeight: "1.8" }}
+              style={{ color: "var(--text-primary)", padding: "12px 16px", lineHeight: "1.5" }}
             />
 
-            {/* 快捷按鈕列 */}
-            <div className="flex gap-2.5 px-2 flex-wrap" style={{ marginTop: "20px", marginBottom: "20px" }}>
-              <button
-                onClick={() => setInputText("午餐150")}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[var(--bg-soft)] text-[var(--accent)] text-sm font-black rounded-full hover:bg-[var(--accent)] hover:text-white transition-all shadow-sm border border-[var(--accent)]/10"
-              >
-                🍜 午餐 150
-              </button>
-              <button
-                onClick={() => setInputText("昨天看醫生200")}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[var(--bg-soft)] text-[var(--status-blue)] text-sm font-black rounded-full hover:bg-[var(--status-blue)] hover:text-white transition-all shadow-sm border border-[var(--status-blue)]/10"
-              >
-                🗓 補記昨天
-              </button>
-            </div>
+
 
             {/* 解析按鈕——美甲友善/大熱區滿版設計 */}
             <div style={{ marginTop: "16px" }}>
@@ -177,7 +163,7 @@ export default function Home() {
           {previews.length > 0 && (
             <div className="space-y-5 animate-soft-in" style={{ marginTop: "24px" }}>
               <div className="flex items-center justify-between px-4">
-                <h3 className="text-sm font-black flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
+                <h3 className="text-base font-black flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
                   <span className="w-2 h-5 bg-[var(--accent)] rounded-full" />
                   即將種下的消費種子 ({previews.length})
                 </h3>
@@ -185,29 +171,29 @@ export default function Home() {
 
               <div className="space-y-0">
                 {previews.map((item, idx) => (
-                  <div key={idx} className={`border-b border-[#f0f0f0] last:border-b-0 py-4 px-2 group animate-soft-in ${isPlanting ? 'is-planting' : ''}`} style={{ animationDelay: isPlanting ? `${idx * 50}ms` : '0ms' }}>
+                  <div key={idx} className={`border-b border-[#f0f0f0] last:border-b-0 py-6 px-2 group animate-soft-in ${isPlanting ? 'is-planting' : ''}`} style={{ animationDelay: isPlanting ? `${idx * 50}ms` : '0ms' }}>
                     <div className="flex justify-between items-center gap-4">
                       {/* 左：日期與分類 (上下排列) */}
-                      <div className="flex flex-col gap-1.5 shrink-0 w-[80px]">
-                        <span className="text-[10px] text-[#9ca3af] tracking-wider font-bold leading-none">
+                      <div className="flex flex-col gap-2 shrink-0 w-[100px]">
+                        <span className="text-lg text-[#9ca3af] tracking-wider font-bold leading-none">
                           {item.date}
                         </span>
-                        <span className="bg-[#e8f5e9] text-[#4caf50] rounded-[12px] px-3 py-1 text-[11px] font-black w-fit leading-none">
+                        <span className="bg-[#e8f5e9] text-[#4caf50] rounded-[16px] px-3.5 py-1.5 text-lg font-black w-fit leading-none">
                           {item.category}
                         </span>
                       </div>
                       
                       {/* 中：品項 */}
                       <div className="flex-1 min-w-0 pl-1">
-                         <h4 className="text-[1.1rem] font-bold truncate" style={{ color: "var(--text-primary)" }}>
+                         <h4 className="text-lg font-bold truncate" style={{ color: "var(--text-primary)" }}>
                            {item.item}
                          </h4>
                       </div>
 
                       {/* 右：金額與刪除 */}
                       <div className="flex items-center gap-5 shrink-0">
-                        <p className="font-sans font-black text-xl tracking-tighter text-[#333]">
-                          <span className="text-sm opacity-50 mr-0.5">$</span>
+                        <p className="font-sans font-black text-3xl tracking-tighter text-[#333]">
+                          <span className="text-base opacity-50 mr-0.5">$</span>
                           {item.amount.toLocaleString()}
                         </p>
                         <button
@@ -234,9 +220,11 @@ export default function Home() {
                 {saving ? "正在播種..." : "全部種下"}
               </button>
 
+              <div className="h-6" /> {/* 強制拉開與上方按鈕的距離 */}
+
               <button
                 onClick={() => { setPreviews([]); setInputText(""); }}
-                className="w-full py-4 text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-50 hover:text-red-500 rounded-[1.5rem] transition-all text-center"
+                className="w-full py-4 text-base font-bold flex items-center justify-center gap-2 hover:bg-red-50 hover:text-red-500 rounded-[1.5rem] transition-all text-center"
                 style={{ color: "var(--text-muted)" }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
