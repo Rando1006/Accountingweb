@@ -236,10 +236,10 @@ export default function HistoryPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="flex flex-col animate-soft-in" style={{ gap: "90px" }}>
+                    <div className="flex flex-col animate-soft-in" style={{ gap: "48px" }}>
                         {groups.map((group) => (
                             <div key={group.date}>
-                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto" style={{ marginBottom: "32px" }}>
+                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto" style={{ marginBottom: "12px" }}>
                                     <span className="text-base font-bold uppercase tracking-widest text-[#9ca3af]">
                                         {formatDateLabel(group.date)}
                                     </span>
