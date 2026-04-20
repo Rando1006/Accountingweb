@@ -216,11 +216,7 @@ export default function HistoryPage() {
                     </div>
 
 
-                    {allData.length > 0 && (
-                        <p className="text-sm font-black text-center mt-4 tracking-tighter opacity-50 uppercase" style={{ color: "var(--text-muted)" }}>
-                            {getDateRangeLabel()}
-                        </p>
-                    )}
+
                 </header>
 
                 {loading ? (
@@ -240,10 +236,10 @@ export default function HistoryPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-20 animate-soft-in">
+                    <div className="space-y-32 animate-soft-in">
                         {groups.map((group) => (
                             <div key={group.date}>
-                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto mb-5">
+                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto mb-10">
                                     <span className="text-base font-bold uppercase tracking-widest text-[#9ca3af]">
                                         {formatDateLabel(group.date)}
                                     </span>
