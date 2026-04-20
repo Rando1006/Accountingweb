@@ -215,16 +215,7 @@ export default function HistoryPage() {
                         </div>
                     </div>
 
-                    {!loading && !error && groups.length > 0 && (
-                        <div className="flex flex-col items-center justify-center py-8 mt-2 bg-transparent border-t-2 border-b-2 border-dashed border-[var(--border)]">
-                            <span className="text-sm font-black uppercase tracking-widest mb-1.5" style={{ color: "var(--text-muted)" }}>
-                                － 累積總花費 －
-                            </span>
-                            <span className="text-5xl font-black tracking-tighter" style={{ color: "var(--text-primary)" }}>
-                                ${totalAll.toLocaleString()}
-                            </span>
-                        </div>
-                    )}
+
                     {allData.length > 0 && (
                         <p className="text-sm font-black text-center mt-4 tracking-tighter opacity-50 uppercase" style={{ color: "var(--text-muted)" }}>
                             {getDateRangeLabel()}
@@ -249,10 +240,10 @@ export default function HistoryPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="space-y-14 animate-soft-in">
+                    <div className="space-y-20 animate-soft-in">
                         {groups.map((group) => (
                             <div key={group.date}>
-                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto mb-4">
+                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto mb-5">
                                     <span className="text-base font-bold uppercase tracking-widest text-[#9ca3af]">
                                         {formatDateLabel(group.date)}
                                     </span>
