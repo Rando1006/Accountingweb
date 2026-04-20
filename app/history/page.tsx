@@ -239,7 +239,7 @@ export default function HistoryPage() {
                     <div className="flex flex-col animate-soft-in" style={{ gap: "18px" }}>
                         {groups.map((group) => (
                             <div key={group.date}>
-                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto" style={{ marginBottom: "10px" }}>
+                                <div className="flex items-center justify-between w-[96%] max-w-[420px] mx-auto" style={{ marginBottom: "4px" }}>
                                     <span className="text-base font-bold uppercase tracking-widest text-[#9ca3af]">
                                         {formatDateLabel(group.date)}
                                     </span>
@@ -258,7 +258,7 @@ export default function HistoryPage() {
                                             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                                         >
                                             {/* 主要內容區 (滑動前看到的範圍) */}
-                                            <div className="w-full flex-shrink-0 snap-center py-5 bg-white/50">
+                                            <div className="w-full flex-shrink-0 snap-center py-3 bg-white/50">
                                                 <div className="flex items-center justify-between w-[94%] max-w-[400px] mx-auto gap-3">
                                                     <div 
                                                         className="w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl flex-shrink-0 mr-2 sm:mr-3 shadow-sm border border-white/60 overflow-hidden"
