@@ -139,7 +139,10 @@ export default function SearchPage() {
             <div className="decoration-blob w-[300px] h-[300px] bg-green-100 top-[-100px] left-[-100px]" />
             <div className="decoration-blob w-[250px] h-[250px] bg-blue-50 bottom-[10%] right-[-50px]" />
 
-            <main className="flex-1 flex flex-col px-4 pt-16 pb-40 max-w-lg mx-auto w-full relative z-10">
+            <main 
+                className="flex-1 flex flex-col px-4 pt-16 max-w-lg mx-auto w-full relative z-10"
+                style={{ paddingBottom: "var(--nav-spacer)" }}
+            >
                 <header className="mb-6 px-2 animate-soft-in">
                     <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
                         搜尋紀錄
