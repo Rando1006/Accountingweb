@@ -23,6 +23,9 @@
   --border: #dee6cc;
   --shadow-soft: 0 8px 30px rgba(133, 194, 66, 0.08);
   /* 帶綠意的軟陰影 */
+
+  /* 導覽列高度總計：70px(nav) + 24px(bottom) + 32px(預留緩衝) + safe-area */
+  --nav-spacer: calc(126px + env(safe-area-inset-bottom, 20px));
 }
 
 @font-face {
