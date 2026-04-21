@@ -87,28 +87,7 @@ export default function HistoryPage() {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const observerTarget = useRef<HTMLDivElement>(null);
 
-    // 自動載入邏輯：監測是否捲動到底部
-    useEffect(() => {
-        if (!hasMore || loading) return;
 
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting) {
-                    fetchData(true);
-                }
-            },
-            { 
-                threshold: 0.1,
-                rootMargin: "100px" // 提前 100px 載入，體驗更流暢
-            }
-        );
-
-        if (observerTarget.current) {
-            observer.observe(observerTarget.current);
-        }
-
-        return () => observer.disconnect();
-    }, [hasMore, loading, fetchData]);
 
     // 使用 useMemo 自動計算分組，確保與 allData 永遠同步
     const groups = useMemo(() => {
@@ -169,6 +148,29 @@ export default function HistoryPage() {
             setLoading(false);
         }
     };
+
+    // 自動載入邏輯：監測是否捲動到底部
+    useEffect(() => {
+        if (!hasMore || loading) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    fetchData(true);
+                }
+            },
+            { 
+                threshold: 0.1,
+                rootMargin: "100px" // 提前 100px 載入，體驗更流暢
+            }
+        );
+
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => observer.disconnect();
+    }, [hasMore, loading]);
 
     useEffect(() => {
         fetchData();
