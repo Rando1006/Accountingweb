@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Navigation from "@/components/Navigation";
 import EditModal from "@/components/EditModal";
 
@@ -85,6 +85,30 @@ export default function HistoryPage() {
     const [userId, setUserId] = useState<string>("");
     const [editingItem, setEditingItem] = useState<ExpenseRow | null>(null);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const observerTarget = useRef<HTMLDivElement>(null);
+
+    // 自動載入邏輯：監測是否捲動到底部
+    useEffect(() => {
+        if (!hasMore || loading) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    fetchData(true);
+                }
+            },
+            { 
+                threshold: 0.1,
+                rootMargin: "100px" // 提前 100px 載入，體驗更流暢
+            }
+        );
+
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => observer.disconnect();
+    }, [hasMore, loading, fetchData]);
 
     // 使用 useMemo 自動計算分組，確保與 allData 永遠同步
     const groups = useMemo(() => {
@@ -313,16 +337,19 @@ export default function HistoryPage() {
                             </div>
                         ))}
 
-                        {hasMore && !loading && (
-                            <div className="pt-4 pb-8 flex justify-center">
-                                <button
-                                    onClick={() => fetchData(true)}
-                                    className="px-8 py-3 bg-white border-2 border-[var(--border)] text-[var(--accent)] font-black text-xs rounded-full hover:bg-[var(--bg-soft)] transition-all shadow-sm active:scale-95"
-                                >
-                                    載入更多歷史種子 🍀
-                                </button>
-                            </div>
-                        )}
+                        {/* 哨兵元素：用於偵測捲動位置 */}
+                        <div ref={observerTarget} className="h-10 w-full flex items-center justify-center">
+                            {hasMore ? (
+                                <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-bold animate-pulse">
+                                    <span>🌱</span>
+                                    正在探索更多紀錄...
+                                </div>
+                            ) : allData.length > 0 ? (
+                                <div className="text-[var(--text-muted)] text-xs font-bold opacity-50 py-4">
+                                    已經看完全部紀錄囉 🍀
+                                </div>
+                            ) : null}
+                        </div>
                     </div>
                 )}
             </main>
