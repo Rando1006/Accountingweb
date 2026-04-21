@@ -9,8 +9,10 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleLogin = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (loading || !password) return;
+        
         setLoading(true);
         setError("");
 
@@ -31,6 +33,23 @@ export default function LoginPage() {
             setError("連線失敗，請檢查網路");
         } finally {
             setLoading(false);
+        }
+    };
+
+    // 處理自動填入偵測與自動提交
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+        setPassword(newValue);
+
+        // 如果是自動填入（通常是 FaceID 觸發，且值較長），嘗試自動提交
+        // 這裡透過檢查 nativeEvent 的 inputType，自動填入通常是 undefined 或 'insertFromPaste' 等
+        // 但最保險的做法是檢查長度與是否在短時間內完成
+        if (newValue.length >= 6 && (e.nativeEvent as any).inputType === undefined) {
+            // 延遲一小段時間確保 state 已更新且給予使用者視覺反饋
+            setTimeout(() => {
+                const form = e.target.form;
+                if (form) form.requestSubmit();
+            }, 100);
         }
     };
 
@@ -58,15 +77,18 @@ export default function LoginPage() {
 
                 <form onSubmit={handleLogin} className="space-y-6">
                     <div className="space-y-2">
-                        <label className="block text-xs font-black uppercase tracking-[0.15em] pl-1 text-[var(--text-muted)]">
+                        <label htmlFor="password-input" className="block text-xs font-black uppercase tracking-[0.15em] pl-1 text-[var(--text-muted)]">
                             Access Password
                         </label>
                         <input
+                            id="password-input"
+                            name="password"
                             type="password"
+                            autoComplete="current-password"
                             className="expense-input text-center tracking-widest text-xl font-bold"
                             placeholder="••••••••"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={handlePasswordChange}
                             maxLength={20}
                             required
                             autoFocus
@@ -98,7 +120,7 @@ export default function LoginPage() {
                 </form>
 
                 <p className="text-[10px] text-center font-medium" style={{ color: "var(--text-muted)" }}>
-                    version 2.0 • Pikmin Bloom Style
+                    version 2.1 • Auto-submit Optimized
                 </p>
             </div>
         </div>
