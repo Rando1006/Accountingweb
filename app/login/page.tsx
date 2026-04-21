@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -36,21 +36,19 @@ export default function LoginPage() {
         }
     };
 
-    // 處理自動填入偵測與自動提交
-    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newValue = e.target.value;
-        setPassword(newValue);
-
-        // 如果是自動填入（通常是 FaceID 觸發，且值較長），嘗試自動提交
-        // 這裡透過檢查 nativeEvent 的 inputType，自動填入通常是 undefined 或 'insertFromPaste' 等
-        // 但最保險的做法是檢查長度與是否在短時間內完成
-        if (newValue.length >= 6 && (e.nativeEvent as any).inputType === undefined) {
-            // 延遲一小段時間確保 state 已更新且給予使用者視覺反饋
-            setTimeout(() => {
-                const form = e.target.form;
-                if (form) form.requestSubmit();
-            }, 100);
+    // 監聽密碼變化，當達到指定長度時自動登入
+    useEffect(() => {
+        // 您的密碼 0911731935 為 10 碼
+        if (password.length === 10 && !loading) {
+            const timer = setTimeout(() => {
+                handleLogin();
+            }, 300); // 稍微延遲讓介面有反應時間
+            return () => clearTimeout(timer);
         }
+    }, [password]);
+
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPassword(e.target.value);
     };
 
     return (
@@ -120,7 +118,7 @@ export default function LoginPage() {
                 </form>
 
                 <p className="text-[10px] text-center font-medium" style={{ color: "var(--text-muted)" }}>
-                    version 2.1 • Auto-submit Optimized
+                    version 2.2 • Length-triggered Auto-submit
                 </p>
             </div>
         </div>
