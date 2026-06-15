@@ -23,8 +23,23 @@ const CATEGORY_COLORS: Record<string, string> = {
     居家: "#4ade80", // 清草綠（對應 pastel #DCFCE7）
     娛樂: "#a78bfa", // 薰衣草紫（對應 pastel #F3E8FF）
     醫療: "#f87171", // 珊瑚紅（對應 pastel #FEE2E2）
+    治裝: "#8b5cf6", // 深薰衣草紫（治裝專用固定色）
     其他: "#94a3b8", // 霧灰藍（對應 pastel #F3F4F6）
 };
+
+const FALLBACK_COLORS = ["#64748b", "#0f766e", "#7c3aed", "#db2777", "#b45309", "#2563eb"];
+
+function normalizeCategory(category: string) {
+    return category.trim() || "其他";
+}
+
+function getCategoryColor(category: string) {
+    const normalizedCategory = normalizeCategory(category);
+    if (CATEGORY_COLORS[normalizedCategory]) return CATEGORY_COLORS[normalizedCategory];
+
+    const colorIndex = Array.from(normalizedCategory).reduce((sum, char) => sum + char.charCodeAt(0), 0) % FALLBACK_COLORS.length;
+    return FALLBACK_COLORS[colorIndex];
+}
 
 export default function AnalysisPage() {
     const [data, setData] = useState<ExpenseRow[]>([]);
@@ -36,6 +51,7 @@ export default function AnalysisPage() {
     const [analyzingAI, setAnalyzingAI] = useState(false);
     const [isAIModalOpen, setIsAIModalOpen] = useState(false);
     const [aiAdvice, setAiAdvice] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
     // 新增：時間偏移量，0 代表當期，-1 代表上一期
     const [dateOffset, setDateOffset] = useState(0);
@@ -164,13 +180,14 @@ export default function AnalysisPage() {
         // 1. 分類占比統計 (Doughnut)
         const stats: Record<string, number> = {};
         filteredData.forEach((item) => {
-            stats[item.category] = (stats[item.category] || 0) + item.amount;
+            const category = normalizeCategory(item.category);
+            stats[category] = (stats[category] || 0) + item.amount;
         });
 
         const rawLabels = Object.keys(stats);
         const categoryLabels = rawLabels.sort((a, b) => stats[b] - stats[a]);
         const categoryAmounts = categoryLabels.map(l => stats[l]);
-        const backgroundColors = categoryLabels.map((l) => CATEGORY_COLORS[l] || `hsl(${Math.random() * 360}, 70%, 60%)`);
+        const backgroundColors = categoryLabels.map(getCategoryColor);
 
         const doughnutData = {
             labels: categoryLabels,
@@ -256,6 +273,24 @@ export default function AnalysisPage() {
 
         return { doughnutData, lineData };
     }, [filteredData, period, dateOffset, periodLabelText, totalAmount]);
+
+    const categoryDetails = useMemo(() => {
+        if (!selectedCategory) return [];
+
+        return filteredData
+            .filter((item) => normalizeCategory(item.category) === selectedCategory)
+            .sort((a, b) => {
+                const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+                return dateDiff || b.amount - a.amount;
+            });
+    }, [filteredData, selectedCategory]);
+
+    useEffect(() => {
+        const labels = chartData.doughnutData.labels;
+        if (selectedCategory && !labels.includes(selectedCategory)) {
+            setSelectedCategory(null);
+        }
+    }, [chartData.doughnutData.labels, selectedCategory]);
 
     const handleAIAnalysis = async () => {
         if (filteredData.length === 0) {
@@ -387,36 +422,106 @@ export default function AnalysisPage() {
                             {chartData.doughnutData.labels.map((label: string, idx: number) => {
                                 const amount = chartData.doughnutData.datasets[0].data[idx];
                                 const percentage = ((amount / totalAmount) * 100).toFixed(1);
-                                const isLast = idx === chartData.doughnutData.labels.length - 1;
+                                const isSelected = selectedCategory === label;
+                                const details = isSelected ? categoryDetails : [];
 
                                 return (
                                     <div 
                                         key={label} 
-                                        className={`py-4 ${!isLast ? 'border-b border-[#f0f0f0]' : ''}`}
+                                        className="border-b border-[#f0f0f0] last:border-b-0"
                                     >
+                                        <button
+                                            type="button"
+                                            onClick={() => setSelectedCategory(isSelected ? null : label)}
+                                            className={`w-full py-4 transition-colors text-left ${isSelected ? "bg-white/75" : "hover:bg-white/55"}`}
+                                            aria-expanded={isSelected}
+                                            aria-controls={`category-detail-${label}`}
+                                        >
                                         <div className="flex items-center justify-between w-[92%] max-w-[400px] mx-auto">
                                             {/* 左側：顏色標記與類別名 */}
                                             <div className="flex items-center gap-3.5">
                                                 <div 
                                                     className="w-3.5 h-3.5 rounded-full shadow-inner" 
-                                                    style={{ backgroundColor: CATEGORY_COLORS[label] }} 
+                                                    style={{ backgroundColor: getCategoryColor(label) }} 
                                                 />
-                                                <span className="text-[1.05rem] font-bold text-[#3d4a2a]">
-                                                    {label}
-                                                </span>
+                                                <div>
+                                                    <span className="text-[1.05rem] font-bold text-[#3d4a2a]">
+                                                        {label}
+                                                    </span>
+                                                    <p className="text-[11px] font-bold text-[#9ca3af] mt-0.5">
+                                                        {isSelected ? "收合明細" : "點擊查看明細"}
+                                                    </p>
+                                                </div>
                                             </div>
                                             
                                             {/* 右側：金額與佔比 */}
-                                            <div className="text-right flex flex-col justify-center items-end pl-2">
-                                                <p className="font-sans text-[1.15rem] font-black tracking-tighter text-[#333] leading-tight">
-                                                    <span className="text-[11px] opacity-40 font-sans font-bold mr-1">$</span>
-                                                    {amount.toLocaleString()}
-                                                </p>
-                                                <p className="text-[11px] font-bold text-[#9ca3af] mt-1">
-                                                    {percentage}%
-                                                </p>
+                                            <div className="flex items-center gap-3 pl-2">
+                                                <div className="text-right flex flex-col justify-center items-end">
+                                                    <p className="font-sans text-[1.15rem] font-black tracking-tighter text-[#333] leading-tight">
+                                                        <span className="text-[11px] opacity-40 font-sans font-bold mr-1">$</span>
+                                                        {amount.toLocaleString()}
+                                                    </p>
+                                                    <p className="text-[11px] font-bold text-[#9ca3af] mt-1">
+                                                        {percentage}%
+                                                    </p>
+                                                </div>
+                                                <span className={`text-sm font-black text-[#9ca3af] transition-transform ${isSelected ? "rotate-180" : ""}`}>
+                                                    ▾
+                                                </span>
                                             </div>
                                         </div>
+                                        </button>
+
+                                        {isSelected && (
+                                            <div
+                                                id={`category-detail-${label}`}
+                                                style={{ padding: "0 16px 16px" }}
+                                            >
+                                                <div className="rounded-2xl bg-[var(--bg-soft)]/70 border border-[var(--border)] overflow-hidden">
+                                                    {details.map((item, detailIdx) => (
+                                                        <div
+                                                            key={`${item.date}-${item.item}-${item.amount}-${detailIdx}`}
+                                                            className="border-b border-white/70 last:border-b-0"
+                                                            style={{
+                                                                display: "grid",
+                                                                gridTemplateColumns: "minmax(0, 1fr) max-content",
+                                                                alignItems: "start",
+                                                                gap: "12px",
+                                                                minWidth: 0,
+                                                                padding: "12px",
+                                                            }}
+                                                        >
+                                                            <div style={{ minWidth: 0, overflow: "hidden" }}>
+                                                                <p
+                                                                    className="text-sm font-black text-[#3d4a2a] leading-snug"
+                                                                    style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                                                                >
+                                                                    {item.item}
+                                                                </p>
+                                                                <p
+                                                                    className="text-[11px] font-bold text-[#7a8a66] mt-0.5"
+                                                                    style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+                                                                >
+                                                                    {item.date}
+                                                                </p>
+                                                            </div>
+                                                            <p
+                                                                className="font-sans text-sm font-black text-[#333] tabular-nums"
+                                                                style={{
+                                                                    maxWidth: "6.5rem",
+                                                                    overflow: "hidden",
+                                                                    textAlign: "right",
+                                                                    textOverflow: "ellipsis",
+                                                                    whiteSpace: "nowrap",
+                                                                }}
+                                                            >
+                                                                ${item.amount.toLocaleString()}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
