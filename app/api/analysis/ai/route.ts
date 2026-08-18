@@ -42,19 +42,54 @@ export async function POST(request: NextRequest) {
 ${summary}
 `;
 
-        const client = process.env.GROQ_API_KEY ? groq : openai;
-        const model = process.env.GROQ_API_KEY ? "llama-3.3-70b-versatile" : "gpt-4o-mini";
+        // 1. 優先嘗試 Groq（支援多模型自動備援）
+        if (process.env.GROQ_API_KEY) {
+            const modelsToTry = Array.from(
+                new Set([
+                    process.env.GROQ_MODEL,
+                    "openai/gpt-oss-120b",
+                    "qwen/qwen3.6-27b",
+                    "openai/gpt-oss-20b",
+                ].filter(Boolean))
+            ) as string[];
 
-        const completion = await client.chat.completions.create({
-            model: model,
-            messages: [
-                { role: "system", content: "你是一位充滿熱情且專業的皮克敏理財導師，專長於行為金融學與極簡生活。" },
-                { role: "user", content: prompt },
-            ],
-            temperature: 0.7,
-        });
+            for (const model of modelsToTry) {
+                try {
+                    const completion = await groq.chat.completions.create({
+                        model: model,
+                        messages: [
+                            { role: "system", content: "你是一位充滿熱情且專業的皮克敏理財導師，專長於行為金融學與極簡生活。" },
+                            { role: "user", content: prompt },
+                        ],
+                        temperature: 0.7,
+                    });
+                    if (completion.choices[0]?.message?.content) {
+                        return NextResponse.json({ advice: completion.choices[0].message.content });
+                    }
+                } catch (groqErr) {
+                    console.warn(`Groq 分析模型 ${model} 失敗，嘗試下一個備用方案:`, groqErr);
+                }
+            }
+        }
 
-        return NextResponse.json({ advice: completion.choices[0].message.content });
+        // 2. 備援至 OpenAI
+        if (process.env.OPENAI_API_KEY) {
+            try {
+                const completion = await openai.chat.completions.create({
+                    model: "gpt-4o-mini",
+                    messages: [
+                        { role: "system", content: "你是一位充滿熱情且專業的皮克敏理財導師，專長於行為金融學與極簡生活。" },
+                        { role: "user", content: prompt },
+                    ],
+                    temperature: 0.7,
+                });
+                return NextResponse.json({ advice: completion.choices[0].message.content });
+            } catch (openaiErr) {
+                console.error("OpenAI 分析失敗:", openaiErr);
+            }
+        }
+
+        return NextResponse.json({ error: "AI 服務暫時無法使用，請稍後再試" }, { status: 500 });
     } catch (error) {
         console.error("AI 分析失敗:", error);
         return NextResponse.json({ error: "AI 暫時迷路了，請稍後再試" }, { status: 500 });

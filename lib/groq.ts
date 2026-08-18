@@ -59,36 +59,56 @@ export async function parseWithGroq(
 輸出：[{"item": "星巴克", "amount": 90, "category": "飲食", "date": "${today}", "paymentMethod": "台新信用卡"}]
 `;
 
-  const response = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: text },
-    ],
-    temperature: 0,
-    response_format: { type: "json_object" },
-  });
+  const modelsToTry = Array.from(
+    new Set([
+      process.env.GROQ_MODEL,
+      "openai/gpt-oss-120b",
+      "qwen/qwen3.6-27b",
+      "openai/gpt-oss-20b",
+    ].filter(Boolean))
+  ) as string[];
 
-  const content = response.choices[0].message.content ?? "{\"expenses\":[]}";
-  let parsed = JSON.parse(content) as ParseResult;
+  let lastError: any = null;
 
-  if (!parsed.expenses || !Array.isArray(parsed.expenses)) {
-    parsed = { expenses: [] };
+  for (const model of modelsToTry) {
+    try {
+      const response = await groq.chat.completions.create({
+        model,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: text },
+        ],
+        temperature: 0,
+        response_format: { type: "json_object" },
+      });
+
+      const content = response.choices[0].message.content ?? "{\"expenses\":[]}";
+      let parsed = JSON.parse(content) as ParseResult;
+
+      if (!parsed.expenses || !Array.isArray(parsed.expenses)) {
+        parsed = { expenses: [] };
+      }
+
+      // 驗證與強制分類邏輯 (保持與 OpenAI 版本一致)
+      const APPAREL_KEYWORDS = ['美甲', '頭髮', '美妝', '保養', '衣服'];
+      
+      parsed.expenses.forEach(expense => {
+        const shouldBeApparel = APPAREL_KEYWORDS.some(keyword => expense.item.includes(keyword));
+        if (shouldBeApparel) {
+          expense.category = "治裝";
+        }
+
+        if (!CATEGORIES.includes(expense.category)) {
+          expense.category = "其他";
+        }
+      });
+
+      return parsed;
+    } catch (err: any) {
+      console.warn(`Groq 模型 ${model} 解析失敗，嘗試下一個備用方案:`, err?.message || err);
+      lastError = err;
+    }
   }
 
-  // 驗證與強制分類邏輯 (保持與 OpenAI 版本一致)
-  const APPAREL_KEYWORDS = ['美甲', '頭髮', '美妝', '保養', '衣服'];
-  
-  parsed.expenses.forEach(expense => {
-    const shouldBeApparel = APPAREL_KEYWORDS.some(keyword => expense.item.includes(keyword));
-    if (shouldBeApparel) {
-      expense.category = "治裝";
-    }
-
-    if (!CATEGORIES.includes(expense.category)) {
-      expense.category = "其他";
-    }
-  });
-
-  return parsed;
+  throw lastError || new Error("所有 Groq 模型皆無法使用");
 }
